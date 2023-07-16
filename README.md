@@ -1,6 +1,8 @@
 # iracing-telemetry-node
 A nodejs-native library for reading iracing telemetry
 
+This project is far from complete. If you're looking for something you can use right now, check out [node-irsdk-2021](https://github.com/mcalapurge/node-irsdk).
+
 ## Goals
 * an RxJS interface for reading telemetry from iRacing
 * Native processing of .ibt telemetry files and live telemetry (i.e., not re-using a C# library)
