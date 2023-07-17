@@ -140,8 +140,6 @@ export async function readIBT(
     const varHeadersByName = new Map<string, IBT_Variable>();
     varHeaders.forEach(vh => varHeadersByName.set(vh.name, vh));
 
-
-
     if (lastSessionInfoUpdate < header.sessionInfoUpdate) {
 
         // advance to session info and read it
@@ -244,7 +242,8 @@ async function parseVariableBufferHeaders(input: Bufferer) {
     return hVarBufs;
 }
 
-/** Parses the header fields of the given input buffer pointed at the beginning of an IBT file
+/** 
+ * Parses the header fields of the given input buffer pointed at the beginning of an IBT file
  * 
  * The input bufferer will be left to start right after the end of the header.
  */
