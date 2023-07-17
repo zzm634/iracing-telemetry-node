@@ -15,6 +15,5 @@
   "dependencies": {
     "rxjs": "^7.8.1",
     "winston": "^3.10.0"
-  },
-  "type": "module"
+  }
 }

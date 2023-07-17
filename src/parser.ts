@@ -117,19 +117,15 @@ type IRTVarExtraBitFields = IRTVarCameraState | IRTVarEngineWarnings | IRTVarSes
 
 export type IRTVar = IRTVarBool | IRTVarChar | IRTVarInt | IRTVarFloat | IRTVarDouble | IRTVarBitField | IRTVarExtraBitFields;
 
-export type IRTelemetryData = {
-    type: "telemetry",
-    raw: Record<string, IRTVar | undefined>,
-}
-
-export type IRData = IRTelemetryData | IRSessionData;
+// TODO
+export class SessionData { }
 
 /**
  * Reads data from the given data source (something in .ibt format, memory-mapped or otherwise) and exports data sections as they are read
  * 
- * @param from 
+ * @param from a supplier that provides the data source. A new data source will be used for every subscription made to the returned observable
  */
-export function createTelemetryObservable(from: () => DataSource): Observable<IRData> {
+export function createTelemetryObservable(from: () => DataSource): Observable<TelemetrySample | SessionData> {
 
     return new Observable((subscriber) => {
 
@@ -143,12 +139,8 @@ export function createTelemetryObservable(from: () => DataSource): Observable<IR
             return interrupt;
         }
 
-        const out = (data: IRData | null) => {
-            if (data === null) {
-                subscriber.complete();
-            } else {
-                subscriber.next(data);
-            }
+        const out = (data: TelemetrySample | SessionData) => {
+            subscriber.next(data);
         }
 
         const ds = from();
@@ -161,15 +153,25 @@ export function createTelemetryObservable(from: () => DataSource): Observable<IR
     });
 }
 
+
 enum IRSDKVarType {
+    /** Single ascii character */
     irsdk_char = 0,
+    /** Single byte */
     irsdk_bool,
+    /** 32-bit signed integer */
     irsdk_int,
+    /** Bit mask implemented as 32-bit integer */
     irsdk_bitField,
+    /** Single precision floating point number (4 bytes) */
     irsdk_float,
+    /** Double precision floating point number (8 bytes) */
     irsdk_double
 }
 
+/**
+ * Every telemetry file contains one or more variable buffers. This header describes how many telemetry samples are included in the file and the position within the file that the buffer starts
+ */
 type IRSDK_VarBuf = {
     tickCount: number;
     offset: number;
@@ -187,11 +189,16 @@ type IRSDK_Variable = {
 
 /**
  * Reads IBT data from the given source and pipes it to the given consumer function (out).
+ * 
  * @param source the data source to read data from
  * @param isInterrupted a callback method that can check to see if we've been interrupted yet and should stop sending data
  * @param out a consumer function that accepts data
+ * @param skipTo options governing whether we should skip reading samples
  */
-export async function readIBT(_source: DataSource, isInterrupted: () => boolean, out: (data: IRData) => void, continuous = false) {
+export async function readIBT(_source: DataSource, isInterrupted: () => boolean, out: (data: TelemetrySample | SessionData) => void, skipTo?: {
+    sample?: number,
+    sessionInfoUpdate?: number
+}) {
 
     const input = new Bufferer(_source, isInterrupted, false);
 
@@ -205,12 +212,21 @@ export async function readIBT(_source: DataSource, isInterrupted: () => boolean,
         ver: await input.nextInt(),
         status: await input.nextInt(),
         tickRate: await input.nextInt(),
+        /** Incremented when the session info changes during a session */
         sessionInfoUpdate: await input.nextInt(),
+        /** The length of the session info string, in bytes */
         sessionInfoLen: await input.nextInt(),
+        /**
+         * The number of bytes into the file that the session info string resides
+         */
         sessionInfoOffset: await input.nextInt(),
+        /** The total number of telemetry variables (channels) */
         numVars: await input.nextInt(),
+        /** The position within the file that the list of telemetry variable headers start */
         varHeadersOffset: await input.nextInt(),
+        /** The number of telemetry channel buffers ( a file contains a list of buffers, each buffer is a list of samples, each sample is a list of values, and each value is a list of... even more values) */
         numBuf: await input.nextInt(),
+        /** The length, in bytes, of a single telemetry sample "line" */
         bufLen: await input.nextInt(),
         padding: await input.read(4 * 2)
     }
@@ -252,9 +268,10 @@ export async function readIBT(_source: DataSource, isInterrupted: () => boolean,
     await input.skipTo(header.varHeadersOffset);
 
     const varHeaders: IRSDK_Variable[] = [];
+    const varHeadersByName = new Map<string, IRSDK_Variable>();
     // each variable header is the same size and contains information about the variables themselves
     for (let i = 0; i < header.numVars; ++i) {
-        varHeaders.push({
+        const variable = {
             type: (await input.nextInt()) as IRSDKVarType,
             offset: await input.nextInt(),
             count: await input.nextInt(),
@@ -262,7 +279,10 @@ export async function readIBT(_source: DataSource, isInterrupted: () => boolean,
             name: await input.nextString(32),
             description: await input.nextString(64),
             unit: await input.nextString(32),
-        })
+        };
+
+        varHeaders.push(variable);
+        varHeadersByName.set(variable.name, variable);
     }
 
     // sort variables by their offset so we can read them incrementally
@@ -297,88 +317,49 @@ export async function readIBT(_source: DataSource, isInterrupted: () => boolean,
 
         const line = Bufferer.from(lineBuf, false);
 
-        const sample: IRTelemetryData = {
-            type: "telemetry",
-            raw: {}
-        }
+        const values = new Map<string, any>();
 
         for (const variable of varHeaders) {
-            let value: IRTVar | null = null;
 
-            switch (variable.type) {
-                case IRSDKVarType.irsdk_char:
-                    value = {
-                        type: variable.type,
-                        description: variable.description,
-                        name: variable.name,
-                        values: await readVariable(line, variable) as string[]
-                    };
-                    break;
-                case IRSDKVarType.irsdk_bool:
-                    value = {
-                        type: variable.type,
-                        description: variable.description,
-                        name: variable.name,
-                        values: await readVariable(line, variable) as boolean[]
-                    };
-                    break;
-                case IRSDKVarType.irsdk_int:
-                    value = {
-                        type: variable.type,
-                        description: variable.description,
-                        name: variable.name,
-                        values: await readVariable(line, variable) as number[],
-                    };
-                    break;
-                case IRSDKVarType.irsdk_bitField:
-                    //const bitField = await line.nextBitField();
-
-                    // TODO special bit field types
-
-                    value = {
-                        type: variable.type,
-                        description: variable.description,
-                        name: variable.name,
-                        values: await readVariable(line, variable) as number[],
-                    };
-                    break;
-                case IRSDKVarType.irsdk_float:
-
-                    value = {
-                        type: variable.type,
-                        description: variable.description,
-                        name: variable.name,
-                        values: await readVariable(line, variable) as number[],
-                    }
-                    break;
-
-                case IRSDKVarType.irsdk_double:
-                    value = {
-                        type: variable.type,
-                        description: variable.description,
-                        name: variable.name,
-                        values: await readVariable(line, variable) as number[],
-                    }
-                    break;
-            }
-
-            sample.raw[variable.name] = value;
+            let value = await readVariable(line, variable);
+            values.set(variable.name, value);
         }
 
-        out(sample);
+        out(new TelemetrySample(varHeadersByName, values));
     }
 }
 
-async function readVariable(input: Bufferer, variable: IRSDK_Variable): Promise<any[]> {
+/**
+ * Reads an array of variable values based on the variable type.
+ * 
+ * The input buffer will be skipped ahead to the offset included in the variable type
+ */
+async function readVariable(input: Bufferer, variable: IRSDK_Variable) {
     await input.skipTo(variable.offset);
     const values: any[] = [];
     for (let i = 0; i < variable.count; ++i) {
         values.push(await readSingleValue(input, variable.type));
     }
-    return values;
+
+    switch (variable.type) {
+        case IRSDKVarType.irsdk_bool:
+            return values as boolean[];
+        case IRSDKVarType.irsdk_char:
+            return values as string[];
+        case IRSDKVarType.irsdk_int:
+        case IRSDKVarType.irsdk_bitField:
+        case IRSDKVarType.irsdk_float:
+        case IRSDKVarType.irsdk_double:
+            return values as number[];
+    }
 }
 
-async function readSingleValue(input: Bufferer, type: IRSDKVarType): Promise<any> {
+/**
+ * Reads a single variable value from the input based on the variable type.
+ * 
+ * The input buffer should already be pointed at the start of the variable
+ */
+async function readSingleValue(input: Bufferer, type: IRSDKVarType) {
     switch (type) {
         case IRSDKVarType.irsdk_char:
             return await input.nextChar();
@@ -392,5 +373,193 @@ async function readSingleValue(input: Bufferer, type: IRSDKVarType): Promise<any
             return await input.nextFloat();
         case IRSDKVarType.irsdk_double:
             return await input.nextDouble();
+    }
+}
+
+/**
+ * TelemetrySample is a set of telemetry variables exported from the simulator at a single point in time.
+ */
+export class TelemetrySample {
+    constructor(
+        private readonly metadata: Map<string, IRSDK_Variable>,
+        private readonly data: Map<string, any[]>
+    ) { }
+
+    /**
+     * Returns an object with all values dereferenced. Useful for debugging.
+     * 
+     * If a variable is single-valued, it will be returned as a single value. Otherwise, it will be an array.
+     */
+    getAll(): Record<string, any> {
+        const all: Record<string, any> = {}
+        for(const varName of this.metadata.keys()) {
+            const value = this.data.get(varName);
+            if(value === null || value === undefined) {
+                all[varName] = null;
+            } else if(value.length === 1) {
+                all[varName] = value[0];
+            } else {
+                all[varName] = value;
+            }
+        }
+
+        return all;
+    }
+
+    /**
+     * Returns the "raw" information about a variable, including its name, description, type, unit, and values.
+     * 
+     * Or null if the value does not exist in this sample.
+     */
+    getRaw(name: string): IRTVar | null {
+        const varMeta = this.metadata.get(name);
+        if (varMeta !== undefined) {
+            const value = this.data.get(name);
+            if (value !== null) {
+
+                switch (varMeta.type) {
+                    case IRSDKVarType.irsdk_char:
+                        return {
+                            name: varMeta.name,
+                            description: varMeta.description,
+                            type: IRSDKVarType.irsdk_char,
+                            values: value as string[],
+                            unit: varMeta.unit
+                        } satisfies IRTVarChar;
+                    case IRSDKVarType.irsdk_bool:
+                        return {
+                            name: varMeta.name,
+                            description: varMeta.description,
+                            type: IRSDKVarType.irsdk_bool,
+                            values: value as boolean[],
+                            unit: varMeta.unit
+                        } satisfies IRTVarBool;
+                    case IRSDKVarType.irsdk_int:
+                        return {
+                            name: varMeta.name,
+                            description: varMeta.description,
+                            type: IRSDKVarType.irsdk_int,
+                            values: value as number[],
+                            unit: varMeta.unit
+                        } satisfies IRTVarInt;
+                    case IRSDKVarType.irsdk_bitField:
+                        return {
+                            name: varMeta.name,
+                            description: varMeta.description,
+                            type: IRSDKVarType.irsdk_bitField,
+                            values: value as number[],
+                            unit: varMeta.unit
+                        } satisfies IRTVarBitField;
+                    case IRSDKVarType.irsdk_float:
+                        return {
+                            name: varMeta.name,
+                            description: varMeta.description,
+                            type: IRSDKVarType.irsdk_float,
+                            values: value as number[],
+                            unit: varMeta.unit
+                        } satisfies IRTVarFloat;
+                    case IRSDKVarType.irsdk_double:
+                        return {
+                            name: varMeta.name,
+                            description: varMeta.description,
+                            type: IRSDKVarType.irsdk_double,
+                            values: value as number[],
+                            unit: varMeta.unit
+                        } satisfies IRTVarDouble;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    // These utility accessors make a lot of assumptions about the data
+    // TODO type checks?
+
+    private getSingleNumber(name: string): number | null {
+        return (this.getRaw(name)?.values[0] ?? null) as number | null;
+    }
+
+    private getSingleBoolean(name: string): boolean | null {
+        return (this.getRaw(name)?.values[0] ?? null) as boolean | null;
+    }
+
+    getAirDensity() {
+        return this.getSingleNumber("AirDensity");
+    }
+
+    getAirPressure() {
+        return this.getSingleNumber("AirPressure");
+    }
+
+    getAirTemp() {
+        return this.getSingleNumber("AirTemp");
+    }
+
+    getAlt() {
+        return this.getSingleNumber("Alt");
+    }
+
+    getBrake() {
+        return this.getSingleNumber("Brake");
+    }
+
+    getBrakeABSActive() {
+        return this.getSingleBoolean("BrakeABSactive");
+    }
+
+    getBrakeABScutPct() {
+        return this.getSingleNumber("BrakeABScutPct");
+    }
+
+    getBrakeRaw() {
+        return this.getSingleNumber("BrakeRaw");
+    }
+
+    /** Center Front Splitter Ride Height */
+    getCFSRRideHeight() {
+        return this.getSingleNumber("CFSRrideHeight");
+    }
+
+    getChanAvgLatency() {
+        return this.getSingleNumber("ChanAvgLatency");
+    }
+
+    // TODO the rest...
+
+
+    // Some bitfield operators
+
+    getEngineWarnings() {
+        const bitfield = this.getSingleNumber("EngineWarnings");
+        if (bitfield === null) return null;
+
+        // typescript enums suck
+        const warnings = new Set<EngineWarning>();
+        if (bitfield & EngineWarning.EngineStalled) {
+            warnings.add(EngineWarning.EngineStalled);
+        }
+
+        if (bitfield & EngineWarning.FuelPressure) {
+            warnings.add(EngineWarning.FuelPressure);
+        }
+
+        if (bitfield & EngineWarning.OilPressure) {
+            warnings.add(EngineWarning.OilPressure);
+        }
+
+        if (bitfield & EngineWarning.PitSpeedLimiter) {
+            warnings.add(EngineWarning.PitSpeedLimiter);
+        }
+
+        if (bitfield & EngineWarning.RevLimiterActive) {
+            warnings.add(EngineWarning.RevLimiterActive);
+        }
+
+        if (bitfield & EngineWarning.WaterTemp) {
+            warnings.add(EngineWarning.WaterTemp);
+        }
+
+        return warnings;
     }
 }

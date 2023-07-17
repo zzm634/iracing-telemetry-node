@@ -5,10 +5,6 @@ import { FileHandle, open } from "fs/promises";
 
 import { rootLogger } from "./logger.js";
 
-const logger = rootLogger.child({
-    source: "buffer.ts",
-});
-
 /**
  * A callback method that allows us to read more data from some source.
  * 
@@ -21,6 +17,10 @@ export type DataSource = {
      * @param count the number of bytes to read. This is merely a suggestion, the source can return a buffer as large or as small as it wants 
      */
     read: (count: number) => Promise<Buffer>,
+
+    /** Skips ahead the given number of bytes. Unlike `read` this number needs to be accurate. The next call to `read` should start the given number of bytes after the end of the buffer returned from the last call to `read` */
+    skip?: (count: number) => Promise<void>,
+
     /**
      * Signals to the data source that we no-longer need to read any data from it and it may close any resources it had open.
      */
@@ -34,6 +34,8 @@ export type DataSource = {
  */
 export class FileDataSource implements DataSource {
 
+    private static LOGGER = rootLogger.child({ class: "FileDataSource" });
+
     private file = null as null | {
         handle: FileHandle,
         readStream: ReadStream,
@@ -41,34 +43,30 @@ export class FileDataSource implements DataSource {
     }
 
     private isClosed = false;
+    private bufferPosition = 0;
 
     constructor(private readonly path: PathLike) { }
 
-    async read(): Promise<Buffer> {
-        if (this.file === null) {
-            const handle = await open(this.path);
-            const readStream = handle.createReadStream();
-            const itr = readStream[Symbol.asyncIterator]();
-            this.file = {
-                handle, readStream, itr,
-            }
+    private async openFileAt(offset = 0) {
+        if (this.file !== null) {
+            await this.closeFile();
         }
-
-        const chunk = await this.file.itr.next();
-        if (chunk.done) {
-            await this.close();
-            throw new EndOfFileError();
-        } else {
-            return chunk.value as Buffer;
+        if (FileDataSource.LOGGER.isDebugEnabled()) {
+            FileDataSource.LOGGER.debug(`opening file at ${offset}: ${this.path}`);
+        }
+        const handle = await open(this.path);
+        const readStream = handle.createReadStream({
+            start: offset,
+        });
+        const itr = readStream[Symbol.asyncIterator]();
+        return {
+            handle, readStream, itr,
         }
     }
 
-    async close() {
-        if (this.isClosed) return;
-        this.isClosed = true;
-
+    private async closeFile() {
         if (this.file !== null) {
-
+            FileDataSource.LOGGER.debug("closing file: " + this.path);
             const f = this.file;
             await new Promise((res, rej) => {
                 f.readStream.close((err) => {
@@ -81,7 +79,55 @@ export class FileDataSource implements DataSource {
             });
 
             await f.handle.close();
+        } else {
+            FileDataSource.LOGGER.debug("file already closed.");
         }
+    }
+
+    async read(): Promise<Buffer> {
+        if (this.isClosed) {
+            throw new Error("File data source is closed");
+        }
+
+        if (this.file === null) {
+            this.file = await this.openFileAt();
+        }
+
+        const chunk = await this.file.itr.next();
+        if (chunk.done) {
+            await this.close();
+            throw new EndOfFileError();
+        } else {
+            const buf = chunk.value as Buffer;
+            this.bufferPosition += buf.byteLength;
+            if (FileDataSource.LOGGER.isDebugEnabled()) {
+                FileDataSource.LOGGER.debug(`read ${buf.byteLength} bytes.`);
+            }
+            return buf;
+        }
+    }
+
+    async skip(count: number): Promise<void> {
+        if (this.isClosed) {
+            throw new Error("File data source is closed");
+        }
+
+        // Close the file and re-open it starting at the desired point in the stream
+        if (this.file !== null) {
+            await this.closeFile();
+        }
+
+        const targetOffset = this.bufferPosition + count;
+        this.file = await this.openFileAt(targetOffset);
+        this.bufferPosition = targetOffset;
+    }
+
+
+    async close() {
+        if (this.isClosed) return;
+        this.isClosed = true;
+
+        this.closeFile();
     }
 }
 
@@ -89,14 +135,15 @@ export class FileDataSource implements DataSource {
  * An error that signals that the file ended before we could read enough of the requested data.
  */
 export class EndOfFileError extends Error {
-
     constructor(readonly remainingData?: Buffer) {
         super("End of file.");
     }
 }
 
 /**
- * Bufferer is a class that manages data from an input source that can be called to retrieve new data
+ * Bufferer is a class that manages data from an input source that can be called to retrieve new data.
+ * 
+ * Bufferer reads arbitrary-sized chunks of data from an asynchronous data source, fulfilling requests for data and retrieving new data as necessary. Bufferers can only move forward in the data source, they cannot be re-opened.  Bufferers are not "thread safe" in this regard.
  */
 export class Bufferer {
     // the current buffer we are reading data from, or null if we've already completely consumed the available data and need to get more
@@ -108,18 +155,34 @@ export class Bufferer {
 
     private isClosed = false;
 
+    /**
+     * Creates a new Bufferer
+     * @param source the source to read data from
+     * @param isInterrupted a callback method that can be used to check if this bufferer has been interrupted and should stop producing data. Note that this will not actually interrupt ongoing reads, it will just stop future reads from completing.
+     * @param bigEndian true if the values in the data source are big-endian (largest byte first), false if they are little-endian
+     */
     constructor(private readonly source: DataSource, private readonly isInterrupted = () => false, private readonly bigEndian = true) {
     }
 
+    /**
+     * Creates a new Bufferer from the given Buffer.
+     * 
+     * @param buffer the buffer to read data from
+     * @param bigEndian whether the values are big-endian
+     * @returns a new Bufferer
+     */
     static from(buffer: Buffer, bigEndian = true) {
+
         let b: Buffer | null = buffer;
 
+        // create a data source that returns the buffer on the first call, and null on all subsequent calls
         const ds: DataSource = {
             close() {
+                b = null;
                 return Promise.resolve();
             },
             read() {
-                if (b === null) throw new Error("no more datas");
+                if (b === null) return Promise.reject(new EndOfFileError());
                 else {
                     const data = Promise.resolve(b);
                     b = null;
@@ -131,15 +194,88 @@ export class Bufferer {
         return new Bufferer(ds, () => false, bigEndian);
     }
 
+    /**
+     * @returns The current byte offset into the data source. (aka, the number of bytes read)
+     */
     getPosition() {
         return this.bytesRead;
     }
 
+    // max bytes to skip at a time if the source does not provide a "skip" method
+    private static SKIP_BUFFER_SIZE = 64 * 1024;
+
+    // calls to skip data less than this number of bytes will be handled by reading and discarding instead
+    private static MIN_SKIP_SIZE = 64 * 1024 * 8;
+
+    /**
+     * Skips ahead the given number of bytes
+     * @param bytes the number of bytes to discard
+     */
+    async skip(bytes: number) {
+        await this.skipTo(this.bytesRead + bytes);
+    }
+
+    /**
+     * Skips ahead in the data source to the given position
+     * @param offset the position within the data source to skip to (in bytes)
+     */
     async skipTo(offset: number) {
         if (offset < this.bytesRead) {
             throw new Error("Cannot skip to previous point in buffer");
-        } else if (offset > this.bytesRead) {
-            await this.read(offset - this.bytesRead);
+        }
+
+        if (this.isClosed) {
+            throw new Error("Closed");
+        }
+
+        let bytesToSkip = offset - this.bytesRead;
+
+        // consume from the remaining buffer, if there is one
+        if (this.buffer !== null) {
+            // if there is data remaining in the buffer, consume it first
+            const bytesLeftInBuffer = this.buffer.byteLength - this.offset;
+            if (bytesLeftInBuffer > bytesToSkip) {
+                // if there's more bytes in the buffer than we need to skip, we can just move our offset up
+                this.offset += bytesToSkip;
+                this.bytesRead += bytesToSkip;
+                return;
+            } else {
+                // consume the rest of the buffer
+                bytesToSkip -= bytesLeftInBuffer;
+                this.bytesRead += bytesLeftInBuffer;
+                this.buffer = null;
+                this.offset = 0;
+            }
+        }
+
+        await this.checkState();
+
+        // if the source supports native skipping, use it
+        if (this.source.skip && bytesToSkip > Bufferer.MIN_SKIP_SIZE) {
+            await this.source.skip(bytesToSkip);
+            this.bytesRead += bytesToSkip;
+            return;
+        }
+
+        // otherwise, skip by reading chunks of the file at a time and not doing anything with it
+        while (bytesToSkip > 0) {
+            const bytesToDiscard = Math.min(Bufferer.SKIP_BUFFER_SIZE, bytesToSkip);
+            await this.read(bytesToDiscard);
+            bytesToSkip -= bytesToDiscard;
+        }
+    }
+
+    /**
+     * Make sure it's OK to proceed, i.e., we're not closed and haven't been interrupted
+     */
+    private async checkState() {
+        if (this.isClosed) {
+            throw new Error("Closed");
+        }
+
+        if (this.isInterrupted()) {
+            await this.close();
+            throw new Error("Interrupted");
         }
     }
 
@@ -154,18 +290,13 @@ export class Bufferer {
             throw new Error("cannot read zero or fewer bytes");
         }
 
-        if (this.isClosed) {
-            throw new Error("closed");
-        }
+        await this.checkState();
 
         const packet = Buffer.allocUnsafe(bytes);
         let writeOffset = 0;
 
         while (bytes > 0) {
-            if (this.isInterrupted()) {
-                throw new Error("interrupted while reading from source");
-            }
-
+            await this.checkState();
 
             if (this.buffer === null) {
                 try {
@@ -178,7 +309,7 @@ export class Bufferer {
 
             // copy some bytes from the saved buffer to the packet
             const endIndex = Math.min(this.buffer.byteLength, this.offset + bytes);
-            
+
             const bytesWritten = this.buffer.copy(packet, writeOffset, this.offset, endIndex);
             this.offset = endIndex;
             bytes -= bytesWritten;
@@ -253,8 +384,8 @@ export class Bufferer {
         const str = (await this.read(length)).toString();
         // fix null terminated shit
         const nul = str.indexOf("\0");
-        if(nul > 0) {
-            return str.substring(0,nul);
+        if (nul > 0) {
+            return str.substring(0, nul);
         } else {
             return str;
         }
