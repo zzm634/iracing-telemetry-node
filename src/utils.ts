@@ -1,4 +1,4 @@
-// Better Enum
+// Messing around
 
 type EnumVal<N extends string, V> = {
     name: N,
