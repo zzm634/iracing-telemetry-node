@@ -40,7 +40,10 @@ export function createTelemetryObservable(
 
         readIBT(ds, isInterrupted, out, options)
             .catch((err) => subscriber.error(err))
-            .finally(() => { subscriber.complete(); ds.close() });
+            .finally(() => {
+                subscriber.complete();
+                ds.close()
+            });
 
         return unsubscribe;
     });
@@ -84,7 +87,7 @@ type ParserOptions = {
 /**
  * Reads IBT data from the given source and pipes it to the given consumer function (out).
  * 
- * @param source the data source to read data from
+ * @param source the data source to read data from. The source will *NOT* be closed by this method
  * @param isInterrupted a callback method that can check to see if we've been interrupted yet and should stop sending data
  * @param out a consumer function that accepts data
  * @param skipTo options governing whether we should skip reading samples or session data
@@ -118,14 +121,14 @@ export async function readIBT(
     // Each "varbuf" (variable buffer) is a big array of "variable lines". A telemetry file can contain more than one variable buffer, but will likely only contain one
     const hVarBufs: IBT_VarBuf[] = await parseVariableBufferHeaders(input);
 
-        // Things gets weird if there are more than one variable buffer, so let's just fail if there's more than one
-        if (hVarBufs.length > 1) {
-            throw new Error("Cannot handle more than one variable buffer right now");
-        } else if (hVarBufs.length === 0) {
-            // weird?
-            return;
-        }
-        const hVarBuf = hVarBufs[0]!;
+    // Things gets weird if there are more than one variable buffer, so let's just fail if there's more than one
+    if (hVarBufs.length > 1) {
+        throw new Error("Cannot handle more than one variable buffer right now");
+    } else if (hVarBufs.length === 0) {
+        // weird?
+        return;
+    }
+    const hVarBuf = hVarBufs[0]!;
 
     // TODO not entirely sure what the order of data is within a file. Technically, session info, variable headers, and data buffers could all come in a different order. But we're reading the file moving forward only, so we can't just jump to arbitrary points, we need to know the order they appear in.
     // I'm not entirely sure if they have a fixed order like header > variables > session > samples, or if it's arbitrary.
