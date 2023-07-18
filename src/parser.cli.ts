@@ -6,7 +6,7 @@ import { readIBT } from "./parser.js";
 
 async function run() {
 
-    const filePath = path.join(".","test-data","trucks silverado2019_newhampshire oval 2023-07-15 19-23-38.ibt");
+    const filePath = path.join(".","test-data","trucks silverado2019_newhampshire oval 2023-07-15 18-24-24.ibt");
 
     const dataSource = new FileDataSource(filePath);
 

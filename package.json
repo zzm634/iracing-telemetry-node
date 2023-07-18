@@ -5,7 +5,7 @@
   "main": "index.ts",
   "repository": "https://github.com/zzm634/iracing-telemetry-node",
   "author": "Zach Miller",
-  "license": "none yet",
+  "license": "MIT",
   "private": false,
   "devDependencies": {
     "@types/ffi-napi": "^4.0.7",

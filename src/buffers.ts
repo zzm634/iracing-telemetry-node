@@ -4,26 +4,33 @@ import { PathLike, ReadStream } from "fs";
 import { FileHandle, open } from "fs/promises";
 
 import { rootLogger } from "./logger.js";
-
 /**
- * A callback method that allows us to read more data from some source.
+ * A DataSource is a forward-moving, asynchronous provider of data buffers. Data sources can provide as much or as little data as they want when a request comes in for more data.
  * 
- * If an error is thrown, it will be assumed that the data source has no more data to read
+ * DataSource implementations do not need to be "thread safe"; it is okay for a data source to assume that it will not get another `read` request for more data until the last promise it returned from `read` has resolved.
+ * 
+ * After a data source has fully consumed all of its data, the next call to `read` or `skip` should throw an EndOfFileError to signal that there is no more data to read.
+ * 
+ * When a consumer is finished reading data from a DataSource, it must call the `close` method. DataSource implementations are allowed to automatically close themselves after they've produced all the data they can, but are not required to. Calling `close` on an already closed data source should have no effect.
  */
 export type DataSource = {
     /**
      * Reads a chunk of data from the source, returning the result as a buffer.
      * 
-     * @param count the number of bytes to read. This is merely a suggestion, the source can return a buffer as large or as small as it wants, as long as returns a buffer larger than zero.
+     * @param count the number of bytes to read. This is merely a hint from the consumer about how much data it expects to consume; the source can return a buffer as large or as small as it wants, as long as it returns a buffer with some data in it.
      * 
      * @throws EndOfFileError if there is no more data to read from.
      */
-    read: (count: number) => Promise<Buffer>,
+    read: (count?: number) => Promise<Buffer>,
 
     /** 
      * Skips ahead the given number of bytes. Unlike `read` this number needs to be accurate. The next call to `read` should start the given number of bytes after the end of the buffer returned from the last call to `read`
      * 
+     * This is an optional method; consumers using a DataSource that has not implemented `skip` should use `read` instead to receive and discard data.
+     * 
      * @param count the number of bytes to discard
+     * 
+     * @throws EndOfFileError if there is no more data to skip, or if the number of bytes requested to skip is greater than the number of bytes left in the data source.
      */
     skip?: (count: number) => Promise<void>,
 
@@ -42,6 +49,9 @@ export class FileDataSource implements DataSource {
 
     private static LOGGER = rootLogger.child({ class: "FileDataSource" });
 
+    /**
+     * Resources based on the open file which must be cleaned up when the data source is closed
+     */
     private file = null as null | {
         /** an open handle to the file at the target path */
         handle: FileHandle,
@@ -51,7 +61,14 @@ export class FileDataSource implements DataSource {
         itr: AsyncIterableIterator<Buffer>,
     }
 
+    /**
+     * True if the data source has been closed
+     */
     private isClosed = false;
+
+    /**
+     * The total number of bytes we've read into the file
+     */
     private bufferPosition = 0;
 
     /**
@@ -168,10 +185,14 @@ export class EndOfFileError extends Error {
     }
 }
 
+
+
 /**
  * Bufferer is a class that manages data from an input source that can be called to retrieve new data.
  * 
- * Bufferer reads arbitrary-sized chunks of data from an asynchronous data source, fulfilling requests for data and retrieving new data as necessary. Bufferers can only move forward in the data source, they cannot be re-opened.  Bufferers are not "thread safe" in this regard.
+ * Bufferer reads arbitrary-sized chunks of data from an asynchronous data source, fulfilling requests for data and retrieving new data as necessary. Bufferers are not thread safe in this regard.
+ * 
+ * In most circumstances, Bufferers can only move forward in the data stream, as they work using DataSources that only move in one direction. However, if a Bufferer is created with a function that *provides* a data source, then it will be possible to move backwards in a stream by creating a new data source and skipping ahead to a previous point in the data.  In this case, it is important that the data source provider returns a data source that scans the same data.
  * 
  * Bufferers should be `close()`'d when the are no longer needed
  */
@@ -192,18 +213,32 @@ export class Bufferer {
 
     private isClosed = false;
 
+    private currentSource: DataSource;
+
     /**
      * Creates a new Bufferer.
      * 
-     * @param source the source to read data from
+     * @param source the source to read data from. If the given source is a data source provider (a function that returns a data source), the Bufferer will be resettable, in that it will be possible to skip *backwards* in the stream using `skip` and `skipTo`
      * @param isInterrupted a callback method that can be used to check if this bufferer has been interrupted and should stop producing data. Note that this will not actually interrupt ongoing reads, it will just prevent future reads from producing any data.
      * @param bigEndian true if the values in the data source are big-endian (largest byte first), false if they are little-endian
      */
-    constructor(private readonly source: DataSource, private readonly isInterrupted = () => false, private readonly bigEndian = true) {
+    constructor(private readonly source: DataSource | (() => DataSource), private readonly isInterrupted = () => false, private readonly bigEndian = true) {
+        if (typeof source === "object") {
+            this.currentSource = source;
+        } else {
+            this.currentSource = source();
+        }
     }
 
     /**
-     * Creates a new Bufferer from the given Buffer.
+     * @returns true if this Bufferer is capable of skipping backwards in the data stream
+     */
+    isResettable() {
+        return typeof this.source === "function";
+    }
+
+    /**
+     * Creates a new Bufferer from the given Buffer. 
      * 
      * @param buffer the buffer to read data from
      * @param bigEndian whether the values are big-endian
@@ -211,25 +246,29 @@ export class Bufferer {
      */
     static from(buffer: Buffer, bigEndian = true) {
 
-        let b: Buffer | null = buffer;
+        const getDs = () => {
 
-        // create a data source that returns the buffer on the first call, and null on all subsequent calls
-        const ds: DataSource = {
-            close() {
-                b = null;
-                return Promise.resolve();
-            },
-            read() {
-                if (b === null) return Promise.reject(new EndOfFileError());
-                else {
-                    const data = Promise.resolve(b);
+            let b: Buffer | null = buffer;
+
+            // create a data source that returns the buffer on the first call, and null on all subsequent calls
+            const ds: DataSource = {
+                close() {
                     b = null;
-                    return data;
+                    return Promise.resolve();
+                },
+                read() {
+                    if (b === null) return Promise.reject(new EndOfFileError());
+                    else {
+                        const data = Promise.resolve(b);
+                        b = null;
+                        return data;
+                    }
                 }
             }
+            return ds;
         }
 
-        return new Bufferer(ds, () => false, bigEndian);
+        return new Bufferer(getDs, () => false, bigEndian);
     }
 
     /**
@@ -257,14 +296,25 @@ export class Bufferer {
      * Skips ahead in the data source to the given position
      * @param offset the position within the data source to skip to (in bytes)
      */
-    async skipTo(offset: number) {
-        if (offset < this.bytesRead) {
-            throw new Error("Cannot skip to previous point in buffer");
+    async skipTo(offset: number): Promise<void> {
+        if (offset < 0) {
+            throw new Error("Cannot skip to a negative offset");
         }
 
-        if (this.isClosed) {
-            throw new Error("Closed");
+        if (offset < this.bytesRead) {
+            if (typeof this.source === "function") {
+                // reset the data source back to the beginning and skip again
+
+                await this.currentSource.close();
+                this.currentSource = this.source();
+                return this.skipTo(offset);
+
+            } else {
+                throw new Error("Cannot skip to previous point in buffer");
+            }
         }
+
+        await this.checkState();
 
         let bytesToSkip = offset - this.bytesRead;
 
@@ -286,17 +336,17 @@ export class Bufferer {
             }
         }
 
-        await this.checkState();
 
         // if the source supports native skipping, use it
-        if (this.source.skip && bytesToSkip > Bufferer.MIN_SKIP_SIZE) {
-            await this.source.skip(bytesToSkip);
+        if (this.currentSource.skip && bytesToSkip > Bufferer.MIN_SKIP_SIZE) {
+            await this.currentSource.skip(bytesToSkip);
             this.bytesRead += bytesToSkip;
             return;
         }
 
         // otherwise, skip by reading chunks of the file at a time and not doing anything with it
         while (bytesToSkip > 0) {
+            await this.checkState();
             const bytesToDiscard = Math.min(Bufferer.SKIP_BUFFER_SIZE, bytesToSkip);
             await this.read(bytesToDiscard);
             bytesToSkip -= bytesToDiscard;
@@ -341,7 +391,7 @@ export class Bufferer {
 
             if (this.buffer === null) {
                 try {
-                    this.buffer = await this.source.read(bytes);
+                    this.buffer = await this.currentSource.read(bytes);
                 } catch (err) {
                     // might not actually be safe to close this if there was an error
                     this.close();
@@ -454,7 +504,7 @@ export class Bufferer {
     async close() {
         if (!this.isClosed) {
             this.isClosed = true;
-            await this.source.close();
+            await this.currentSource.close();
         }
     }
 }
