@@ -76,7 +76,9 @@ export class FileDataSource implements DataSource {
      * 
      * @param path 
      */
-    constructor(private readonly path: PathLike) { }
+    constructor(private readonly path: PathLike, options?: {
+
+    }) { }
 
     /**
      * Closes (if necessary) and re-opens the file, skipping ahead to the given offset
@@ -94,6 +96,7 @@ export class FileDataSource implements DataSource {
         const handle = await open(this.path);
         const readStream = handle.createReadStream({
             start: offset,
+            highWaterMark: 4 * 1024 * 1024
         });
 
         // should be returning Buffers since we did not provide an encoding to createReadStream
@@ -394,7 +397,7 @@ export class Bufferer {
                     this.buffer = await this.currentSource.read(bytes);
                 } catch (err) {
                     // might not actually be safe to close this if there was an error
-                    this.close();
+                    await this.close();
                     throw err;
                 }
                 this.offset = 0;
@@ -420,60 +423,114 @@ export class Bufferer {
 
     // TODO these read methods could probably be more efficient if we didn't have to create all these tiny buffers to receive the data
 
+    private bytesLeft() {
+        if (this.buffer === null) {
+            return 0;
+        } else {
+            return this.buffer.byteLength - this.offset;
+        }
+    }
+
+
     /**
      * Reads the next 32-bit signed integer from the source.
      */
-    async nextInt() {
-        const buf = (await this.read(4));
-        if (this.bigEndian) {
-            return buf.readInt32BE();
-        } else {
-            return buf.readInt32LE();
+    nextInt(): Promise<number> {
+        if (this.bytesLeft() >= 4) {
+            const val = this.bigEndian
+                ? this.buffer!.readInt32BE(this.offset)
+                : this.buffer!.readInt32LE(this.offset);
+            this.offset += 4;
+            this.bytesRead += 4;
+            return Promise.resolve(val);
         }
+
+        return (this.read(4))
+            .then((buf) => {
+                if (this.bigEndian) {
+                    return buf.readInt32BE();
+                } else {
+                    return buf.readInt32LE();
+                }
+            });
     }
 
     /**
      * Reads a single 8-bit ascii character from the stream.
      */
-    async nextChar() {
-        return (await this.read(1)).toString("ascii", 0, 1);
+    nextChar(): Promise<string> {
+        if (this.bytesLeft() >= 1) {
+            const val = this.buffer!.toString("ascii", this.offset, this.offset + 1);
+            this.offset += 1;
+            this.bytesRead += 1;
+            return Promise.resolve(val);
+        }
+
+        return (this.read(1)).then((buf) => buf.toString("ascii", 0, 1));
     }
 
     /**
      * Reads a boolean from the stream. (a one-byte value that is non-zero if true)
      */
-    async nextBool() {
-        return (await this.read(1)).readInt8() !== 0;
+    nextBool(): Promise<boolean> {
+        if (this.bytesLeft() >= 1) {
+            const val = this.buffer!.readUInt8(this.offset) !== 0;
+            this.offset += 1;
+            this.bytesRead += 1;
+            return Promise.resolve(val);
+        }
+
+        return (this.read(1)).then(buf => buf.readUInt8() !== 0)
     }
 
     /**
      * Reads a 32-bit floating point number from the stream.
      */
-    async nextFloat() {
-        const buf = (await this.read(4));
-        if (this.bigEndian) {
-            return buf.readFloatBE();
-        } else {
-            return buf.readFloatLE();
+    nextFloat(): Promise<number> {
+        if (this.bytesLeft() >= 4) {
+            const val = this.bigEndian
+                ? this.buffer!.readFloatBE(this.offset)
+                : this.buffer!.readFloatLE(this.offset);
+            this.offset += 4;
+            this.bytesRead += 4;
+            return Promise.resolve(val);
         }
+
+        return (this.read(4)).then((buf) => {
+            if (this.bigEndian) {
+                return buf.readFloatBE();
+            } else {
+                return buf.readFloatLE();
+            }
+        });
     }
 
     /**
      * Reads a 64-bit floating point number from the stream
      */
-    async nextDouble() {
-        const buf = (await this.read(8));
-        if (this.bigEndian) {
-            return buf.readDoubleBE();
-        } else {
-            return buf.readDoubleLE();
+    nextDouble(): Promise<number> {
+        if (this.bytesLeft() >= 8) {
+            const val = this.bigEndian
+                ? this.buffer!.readDoubleBE(this.offset)
+                : this.buffer!.readDoubleLE(this.offset);
+            this.offset += 8;
+            this.bytesRead += 8;
+            return Promise.resolve(val);
         }
+
+        return (this.read(8)).then((buf) => {
+            if (this.bigEndian) {
+                return buf.readDoubleBE();
+            } else {
+                return buf.readDoubleLE();
+            }
+        })
     }
 
     /**
      * Reads a 32-bit bitfield from the stream. An alias for `nextInt`
      */
-    async nextBitField() {
+    nextBitField() {
         return this.nextInt();
     }
 
@@ -483,9 +540,21 @@ export class Bufferer {
      * @param encoding the string encoding to use. Pretty sure the default is utf8
      * @returns the parsed string.
      */
-    async nextString(length: number, encoding?: BufferEncoding) {
-        const str = (await this.read(length)).toString(encoding);
-        // fix null terminated shit
+    nextString(length: number, encoding?: BufferEncoding): Promise<string> {
+        if (this.bytesLeft() >= length) {
+            const str = this.buffer!.toString(encoding, this.offset, this.offset + length);
+            this.offset += length;
+            this.bytesRead += length;
+            return Promise.resolve(Bufferer.trimNull(str));
+        } else {
+             return (this.read(length)).then(buf => Bufferer.trimNull(buf.toString(encoding)));
+        }
+    }
+
+    /**
+     * Trims null characters off the end of a string
+     */
+    private static trimNull(str: string) {
         const nul = str.indexOf("\0");
         if (nul > 0) {
             return str.substring(0, nul);
