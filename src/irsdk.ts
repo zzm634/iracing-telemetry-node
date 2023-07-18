@@ -1,3 +1,5 @@
+// iRacing constants, structs, formats, and metadata
+
 /** iRacing telemetry supports these types of variables, identified using this numeric enum */
 export enum IRSDKVarType {
     /** Single ascii character */
@@ -125,14 +127,14 @@ export const M_PitSvFlags: Bitmask = {
 /**
  * Checks for the presence of bits in the given bitmask value using the given "enum"
  * @param value the bitmask value to chec
- * @param enumm an object mapping enum names to bit field masks (not bit positions) that will be used to check the value
+ * @param bitmask an object mapping enum names to bit field masks (not bit positions) that will be used to check the value
  * @returns a set containing the names of the set bits in the given bitmask
  */
-export function toEnumSet<E extends Record<string, number>>(value: number, enumm: E): Set<keyof E> {
+export function toEnumSet<E extends Bitmask>(value: number, bitmask: E): Set<keyof E> {
 
     const enumSet = new Set<keyof E>();
-    for(const ename in enumm) {
-        const mask = enumm[ename]!;
+    for(const ename in bitmask) {
+        const mask = bitmask[ename]!;
         if((value & mask) !== 0) {
             enumSet.add(ename);
         }
@@ -212,5 +214,18 @@ enum CarLeftRight {
 
 
 
-/** An IRTValue is an IRTVar that has an actual value */
+/** 
+ * An IRTValue is an IRTVar that has an actual value.
+ * 
+ * We use this union type so that you can check for the variable type first and get an actual typed value later
+ * 
+ * @example
+ * const rpm = sample.get("RPM");
+ * 
+ * const rpms = rpm.values[0]; // <- no
+ * 
+ * if(rpm.type === IRSDKVarType.irsdk_int) {
+ *      const rpms = rpm.values[0]; // <- yes
+ * }
+ */
 export type IRTValue = IRTVarBool | IRTVarChar | IRTVarInt | IRTVarFloat | IRTVarDouble | IRTVarBitField;
