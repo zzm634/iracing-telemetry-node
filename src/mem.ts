@@ -65,17 +65,13 @@ export function createEventObservable(topic: string): Observable<void> {
       interrupted = true;
     };
 
-    const err = (error: unknown) => {
-      subscriber.error(error);
-    };
-
     const out = () => {
       subscriber.next();
     };
 
-    emitEvents(topic, out, err, isInterrupted).finally(() =>
-      subscriber.complete(),
-    );
+    emitEvents(topic, out, isInterrupted)
+      .then(() => subscriber.complete())
+      .catch((err) => subscriber.error(err));
 
     return interrupt;
   });
@@ -92,23 +88,17 @@ export function createEventObservable(topic: string): Observable<void> {
 async function emitEvents(
   topicName: string,
   out: () => void,
-  err: (error: unknown) => void,
   isInterrupted: () => boolean,
 ) {
   let eventHandle = null as null | Handle;
-  try {
-    eventHandle = await openEvent(topicName);
-  } catch (error) {
-    err(error);
-    return;
-  }
+
+  eventHandle = await openEvent(topicName);
+
   try {
     while (!isInterrupted()) {
       await waitForNextEventHandle(eventHandle);
       out();
     }
-  } catch (error) {
-    err(error);
   } finally {
     await closeHandle(eventHandle);
   }

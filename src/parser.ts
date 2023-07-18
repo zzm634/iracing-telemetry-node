@@ -12,7 +12,7 @@ const logger = rootLogger.child({
 });
 
 /**
- * Reads data from the given data source (something in .ibt format, memory-mapped or otherwise) and exports data sections as they are read. The data source will not be "opened" until a subscriber subscribes to the observable
+ * Reads data from the given data source (something in .ibt format, memory-mapped or otherwise) and exports data sections as they are read. A new data source will be opened every time a subscriber subscribes to the returned observable and will be closed when either parsing completes or they unsubscribe.
  *
  * @param from a supplier that provides the data source. A new data source will be used for every subscription made to the returned observable
  */
@@ -31,18 +31,16 @@ export function createTelemetryObservable(
       return interrupt;
     };
 
-    const out = (data: TelemetrySample | SessionData) => {
-      subscriber.next(data);
+    const out = (data: TelemetrySample | SessionData | TelemetryMetadata) => {
+      if (!(data instanceof TelemetryMetadata)) {
+        // TODO should probably emit TMs too anyway
+        subscriber.next(data);
+      }
     };
 
-    const ds = from();
-
-    readIBT(ds, isInterrupted, out, options)
-      .catch((err) => subscriber.error(err))
-      .finally(() => {
-        subscriber.complete();
-        ds.close();
-      });
+    readIBT(from, isInterrupted, out, options)
+      .then(() => subscriber.complete())
+      .catch((err) => subscriber.error(err));
 
     return unsubscribe;
   });
@@ -84,23 +82,34 @@ type ParserOptions = {
 };
 
 /**
+ * TelemetryMetadata describes properties of a telemetry file that are not included in the session info or telemetry samples. Always emitted when parsing an IBT file
+ */
+export class TelemetryMetadata {
+  constructor(public readonly sessionInfoUpdate: number) {}
+}
+
+/**
  * Reads IBT data from the given source and pipes it to the given consumer function (out).
  *
- * @param source the data source to read data from. The source will *NOT* be closed by this method
+ * As the file is read, parsed objects will be passed to the given `out` function. `TelemetryMetadata` will always be emitted first, followed by a single `SessionData` and multiple `TelemetrySample`s.
+ * - If `options.lastSessionInfoUpdate` is provided, `SessionData` will only be emitted if the update number (available in `TelemetryMetadata`) in the file is greater than the number provided in `options.lastSessionInfoUpdate`.
+ * - If `options.skipToSample` is provided, then parsing will jump ahead in the telemetry file that number of samples before emitting `TelemetrySample`s. Note that this should only be used when incrementally parsing disk files; live (memory-mapped) telemetry will only contain one sample.
+ *
+ * @param source the data source to read data from. The data source will be closed by this method
  * @param isInterrupted a callback method that can check to see if we've been interrupted yet and should stop sending data
  * @param out a consumer function that accepts data
  * @param skipTo options governing whether we should skip reading samples or session data
  */
-// I just named this parameter "_source" so that I would stop accidentally referring to it instead of "input"
 export async function readIBT(
-  _source: DataSource,
+  source: DataSource | (() => DataSource),
   isInterrupted: () => boolean,
-  out: (data: TelemetrySample | SessionData) => void,
+  out: (data: TelemetrySample | SessionData | TelemetryMetadata) => void,
   options?: ParserOptions,
 ) {
-  const input = new Bufferer(_source, isInterrupted, false);
   const { skipToSample = 0, sessionInfoUpdate: lastSessionInfoUpdate = -1 } =
     options ?? {};
+
+  const input = new Bufferer(source, isInterrupted, false);
 
   // IBT files seem to be organized like this:
   // header,
@@ -113,6 +122,8 @@ export async function readIBT(
 
   // The header contains lots of metadata about the structure of the file, including the variable descriptors
   const header = await parseHeader(input);
+
+  out(new TelemetryMetadata(header.sessionInfoUpdate));
 
   if (logger.isDebugEnabled()) {
     logger.debug("header", header);
@@ -187,6 +198,8 @@ export async function readIBT(
 
     out(new TelemetrySample(varHeadersByName, values));
   }
+
+  await input.close();
 }
 
 /**
