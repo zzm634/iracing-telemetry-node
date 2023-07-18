@@ -7,113 +7,121 @@ import ffi from "ffi-napi";
 
 /**
  * Opens the memory-mapped file indentified by the given name, copies its entire contents to a buffer and closes the file.
- * 
+ *
  * @param fileName the name of the memory mapped file to read
  * @returns a buffer containing a copy of the data stored in the memory mapped file
  */
 export function readMemoryMappedFile(fileName: string): Promise<Buffer> {
-    // TODO
-    return Promise.reject(new Error("Not yet implemented"));
+  // TODO
+  return Promise.reject(new Error("Not yet implemented"));
 }
 
 type Handle = unknown;
 
 /** Opens a handle to the event identified by the given name */
 function openEvent(topic: string): Promise<Handle> {
-    // TODO
-    return Promise.reject(new Error("Not yet implemented"));
+  // TODO
+  return Promise.reject(new Error("Not yet implemented"));
 }
 
 /** Closes given event handle and releases resources associated with it */
 function closeHandle(handle: Handle): Promise<void> {
-    // TODO
-    return Promise.reject(new Error("Not yet implemented"));
+  // TODO
+  return Promise.reject(new Error("Not yet implemented"));
 }
 
-/** 
+/**
  * Returns a promise that resolves when the next event from the given topic is triggered.
- * 
+ *
  * If a timeout value is provided, the promise will resolve with the value "false" if it resolved because the timeout was exceeded. If the promise resolved because the event was triggered, it will resolve with "true".
- * 
+ *
  * If provided, the timeout must be greater than zero.
- * 
+ *
  * @param handle a reference to the opened event to listen to
  * @param timeoutMs the maximum number of milliseconds to wait for the next event. If provided, it must be greater than zero
  */
-function waitForNextEventHandle(handle: Handle, timeoutMs?: number): Promise<boolean> {
-    if(timeoutMs !== undefined && timeoutMs <= 0) {
-        throw new Error("timeout must be undefined or greater than 0.");
-    }
+function waitForNextEventHandle(
+  handle: Handle,
+  timeoutMs?: number,
+): Promise<boolean> {
+  if (timeoutMs !== undefined && timeoutMs <= 0) {
+    throw new Error("timeout must be undefined or greater than 0.");
+  }
 
-    // TODO
-    return Promise.reject(new Error("Not yet implemented"));
+  // TODO
+  return Promise.reject(new Error("Not yet implemented"));
 }
 
 /**
  * Creates an observable that, when subscribed to, opens the event identified by the given topic name and calls `next()` every time the topic event is triggered.
- * 
- * If the code consuming this observable is too slow, it may be possible to miss triggered events. 
+ *
+ * If the code consuming this observable is too slow, it may be possible to miss triggered events.
  */
 export function createEventObservable(topic: string): Observable<void> {
-    return new Observable<void>((subscriber) => {
-        let interrupted = false;
-        const isInterrupted = () => interrupted;
-        const interrupt = () => {
-            interrupted = true;
-        }
+  return new Observable<void>((subscriber) => {
+    let interrupted = false;
+    const isInterrupted = () => interrupted;
+    const interrupt = () => {
+      interrupted = true;
+    };
 
-        const err = (error: unknown) => {
-            subscriber.error(error);
-        }
+    const err = (error: unknown) => {
+      subscriber.error(error);
+    };
 
-        const out = () => {
-            subscriber.next();
-        }
+    const out = () => {
+      subscriber.next();
+    };
 
-        emitEvents(topic, out, err, isInterrupted)
-            .finally(() => subscriber.complete());
+    emitEvents(topic, out, err, isInterrupted).finally(() =>
+      subscriber.complete(),
+    );
 
-        return interrupt;
-    });
+    return interrupt;
+  });
 }
 
 /**
  * Opens the topic and emits events until it is interrupted.
- * 
+ *
  * @param topicName the name of the topic to subscribe to
  * @param out a callback function that will be invoked every time the topic produces an event
  * @param err a callback method that accepts errors that occur if there is a problem opening or waiting for the topic
  * @param isInterrupted a callback method that can be checket to see if this event emitter should stop listening for events
  */
-async function emitEvents(topicName: string, out: () => void, err: (error: unknown) => void, isInterrupted: () => boolean) {
-    let eventHandle = null as null | Handle;
-    try {
-        eventHandle = await openEvent(topicName);
-    } catch (error) {
-        err(error);
-        return;
+async function emitEvents(
+  topicName: string,
+  out: () => void,
+  err: (error: unknown) => void,
+  isInterrupted: () => boolean,
+) {
+  let eventHandle = null as null | Handle;
+  try {
+    eventHandle = await openEvent(topicName);
+  } catch (error) {
+    err(error);
+    return;
+  }
+  try {
+    while (!isInterrupted()) {
+      await waitForNextEventHandle(eventHandle);
+      out();
     }
-    try {
-        while (!isInterrupted()) {
-            await waitForNextEventHandle(eventHandle);
-            out();
-        }
-    } catch (error) {
-        err(error);
-    } finally {
-        await closeHandle(eventHandle);
-    }
+  } catch (error) {
+    err(error);
+  } finally {
+    await closeHandle(eventHandle);
+  }
 }
 
 /**
  * Waits for a single event identified by the given topic name to be triggered.
  */
 export async function waitForNextEvent(topic: string): Promise<void> {
-    const handle = await openEvent(topic);
-    await waitForNextEventHandle(handle);
-    await closeHandle(handle);
+  const handle = await openEvent(topic);
+  await waitForNextEventHandle(handle);
+  await closeHandle(handle);
 }
-
 
 //import koffi, { KoffiFunc, as } from "koffi";
 
@@ -154,7 +162,7 @@ export async function waitForNextEvent(topic: string): Promise<void> {
 //         KoffiFunc<(handle: Handle) => boolean>,
 //     OpenFileMappingW: libKernel32.func("OpenFileMappingW", HANDLE, [DWORD, BOOL, LPCWSTR]) as
 //         KoffiFunc<(desiredAccess: number, inheritHandle: boolean, name: string) => Handle>,
-//     VirtualQuery: libKernel32.func("VirtualQuery", SIZE_T, [LPCVOID, koffi.out(PMEMORY_BASIC_INFORMATION), SIZE_T]) as 
+//     VirtualQuery: libKernel32.func("VirtualQuery", SIZE_T, [LPCVOID, koffi.out(PMEMORY_BASIC_INFORMATION), SIZE_T]) as
 //         KoffiFunc<(pointer: Pointer, memoryBasicInformation: Buffer, bufferSize: number) => number>,
 //     MapViewOfFile: libKernel32.func("MapViewOfFile", LPVOID, [HANDLE, DWORD, DWORD, DWORD, SIZE_T]) as
 //         KoffiFunc<(handle: Handle, desiredAccess: number, fileOffsetHigh: number, fileOfffsetLow: number, numberOfBytesToMap: number) => Pointer>
@@ -179,7 +187,7 @@ export async function waitForNextEvent(topic: string): Promise<void> {
 
 // function openEventHandle(
 //     name: string,
-//      desiredAccess: (keyof typeof M_AccessFlags)[] = ["SYNCHRONIZE"], 
+//      desiredAccess: (keyof typeof M_AccessFlags)[] = ["SYNCHRONIZE"],
 //      inheritHandle = true): Promise<Handle> {
 
 //     let dwDesiredAccess = 0;
@@ -243,11 +251,9 @@ export async function waitForNextEvent(topic: string): Promise<void> {
 const HANDLE = ref.types.void;
 const DWORD = ref.types.uint32;
 const BOOL = ref.types.bool;
-const LPCWSTR = ref.refType
+const LPCWSTR = ref.refType;
 
 // lets try this again
 const libKernel32 = ffi.Library("kernel32.dll", {
-    OpenEventW: [HANDLE, [DWORD, BOOL,]]
-})
-
-
+  OpenEventW: [HANDLE, [DWORD, BOOL]],
+});

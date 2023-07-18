@@ -11,6 +11,9 @@
     "@types/ffi-napi": "^4.0.7",
     "@types/js-yaml": "^4.0.5",
     "@types/node": "^20.4.2",
+    "husky": ">=6",
+    "lint-staged": ">=10",
+    "prettier": "3.0.0",
     "ts-node": "^10.9.1",
     "typescript": "^5.1.6"
   },
@@ -20,5 +23,11 @@
     "ref-wchar-napi": "^1.0.3",
     "rxjs": "^7.8.1",
     "winston": "^3.10.0"
+  },
+  "lint-staged": {
+    "*.{js,css,md,ts}": "prettier --write"
+  },
+  "scripts": {
+    "prepare": "husky install"
   }
 }
