@@ -1,5 +1,15 @@
 // Various async utilities
 
+import {
+  BehaviorSubject,
+  Observable,
+  concatAll,
+  filter,
+  from,
+  map,
+  withLatestFrom,
+} from "rxjs";
+
 /**
  * An Interruptible is a promise paired with an "interrupt" method that can be used to cause the promise to reject early.
  */
@@ -223,4 +233,72 @@ export class BlockingQueue<E> {
     this.waiters = [];
     waiters.forEach((waiter) => waiter.reject(new Error("Queue is closing")));
   }
+}
+
+function mapAsyncBuffered<A, B>(
+  source: Observable<A>,
+  transform: (_: A) => Promise<B>,
+): Observable<B> {
+  return source.pipe(
+    map(transform),
+    map((p) => from(p)),
+    concatAll(),
+  );
+}
+
+function mapAsyncDrop<A, B>(
+  source: Observable<A>,
+  transform: (_: A) => Promise<B>,
+): Observable<B> {
+  return new Observable((subscriber) => {
+    // create a "control" subject to prevent the source from emitting results while a promise is executing
+    const working = new BehaviorSubject(false);
+
+    // use a new transformer that notifies the behaviorsubject while it is working
+    const monitoringTransformer = (input: A) => {
+      // set the flag indicating that a transformation is happening
+      working.next(true);
+      // run the transformation
+      return (
+        transform(input)
+          // when it's done, set the "working" flag back to false to indicate that the transformer is idle
+          .finally(() => working.next(false))
+      );
+    };
+
+    const filteredSource = source.pipe(
+      // combine the results emitted from the source with the "working" status of the most recent promise
+      withLatestFrom(working),
+      // if there was an async processing operation underway, "working" would be true, so only let through the items that were emitted while the operation was not "working"
+      filter((item) => !item[1]),
+      // extract the item itself (discard the working status)
+      map((item) => item[0]),
+      // run the monitoring transformer to turn this into a promise
+      map(monitoringTransformer),
+      // turn the promise into an observable
+      map(from),
+      // concat all the observables together into a single pipeline
+      concatAll(),
+    );
+
+    return filteredSource.subscribe(subscriber);
+  });
+}
+
+/**
+ * Maps the given asyncronous transform across the items emitted by the given source observable, returning a new observable that contains the resolved items.
+ *
+ * @param source the source observable to read items from
+ * @param transform the transformation operation to apply
+ * @param buffer if true, then results will be buffered so that results produced by long running transformations still appear in the correct order on the output observable. If false, then items emitted from the source while a transformation is ongoing will be skipped in the output
+ * @returns a new observable that emits the result of applying the given transformation to the items emitted by the source.
+ */
+export function mapAsync<A, B>(
+  source: Observable<A>,
+  transform: (_: A) => Promise<B>,
+  buffer = true,
+): Observable<B> {
+  return buffer
+    ? mapAsyncBuffered(source, transform)
+    : mapAsyncDrop(source, transform);
 }
