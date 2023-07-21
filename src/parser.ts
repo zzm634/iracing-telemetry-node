@@ -4,8 +4,9 @@ import { Observable } from "rxjs";
 import { Bufferer, DataSource, EndOfFileError } from "./buffers.js";
 import { rootLogger } from "./logger.js";
 import { TelemetrySample } from "./TelemetrySample.js";
-import { IRSDKVarType, IRTVar } from "./irsdk.js";
+import { IRSDKVarType, IRSDKVarTypeWidth, IRTVar } from "./irsdk.js";
 import { SessionData } from "./SessionData.js";
+import { lazy } from "./async.js";
 
 const logger = rootLogger.child({
   source: "parser.ts",
@@ -109,6 +110,9 @@ export async function readIBT(
   const { skipToSample = 0, sessionInfoUpdate: lastSessionInfoUpdate = -1 } =
     options ?? {};
 
+  const generateTelemetryCode =
+    (options && (options as any)["generate"] === true) ?? false;
+
   const input = new Bufferer(source, isInterrupted, false);
 
   // IBT files seem to be organized like this:
@@ -154,6 +158,13 @@ export async function readIBT(
   const varHeadersByName = new Map<string, IBT_Variable>();
   varHeaders.forEach((vh) => varHeadersByName.set(vh.name, vh));
 
+  if (generateTelemetryCode) {
+    // for help while writing this code, just generate code and leave
+    generate(varHeaders);
+    input.close();
+    return;
+  }
+
   if (lastSessionInfoUpdate < header.sessionInfoUpdate) {
     // advance to session info and read it
     await input.skipTo(header.sessionInfoOffset);
@@ -175,7 +186,7 @@ export async function readIBT(
   // read samples
   while (!isInterrupted()) {
     // read a line at a time, since variable header offsets are from the start of a line, not the start of a file
-    let lineBuf: Buffer | null = null;
+    let lineBuf: Buffer;
     try {
       lineBuf = await input.read(header.bufLen);
     } catch (err) {
@@ -186,17 +197,18 @@ export async function readIBT(
       }
     }
 
-    const line = Bufferer.from(lineBuf, false);
+    const lazySample = lazy(() => {
+      const values = new Map<string, any>();
 
-    const values = new Map<string, any>();
+      for (const variable of varHeaders) {
+        // since we already read the line into a buffer, this should technically be synchronous. But it's nice to reuse Bufferer
+        let value = readVariableSync(lineBuf, variable);
+        values.set(variable.name, value);
+      }
+      return values;
+    });
 
-    for (const variable of varHeaders) {
-      // since we already read the line into a buffer, this should technically be synchronous. But it's nice to reuse Bufferer
-      let value = await readVariable(line, variable);
-      values.set(variable.name, value);
-    }
-
-    out(new TelemetrySample(varHeadersByName, values));
+    out(new TelemetrySample(varHeadersByName, lazySample));
   }
 
   await input.close();
@@ -288,6 +300,43 @@ async function parseHeader(input: Bufferer) {
 }
 
 /**
+ * Reads a variable from the given buffer.
+ *
+ * Unlike, `readVariable`, this one is synchronous
+ *
+ * @param input a buffer containing a complete telemtry sample line
+ * @param variable metadata that describes the type and location of the variable to read
+ * @returns an array of sample values (based on `variable.count`)
+ */
+function readVariableSync(input: Buffer, variable: IBT_Variable) {
+  const values: any[] = [];
+  for (let i = 0; i < variable.count; ++i) {
+    const varSize = IRSDKVarTypeWidth[variable.type];
+    const byteOffset = variable.offset + i * varSize;
+    switch (variable.type) {
+      case IRSDKVarType.irsdk_char:
+        values.push(input.toString("ascii", byteOffset, byteOffset + 1));
+        break;
+      case IRSDKVarType.irsdk_bool:
+        values.push(input.readUint8(byteOffset) !== 0);
+        break;
+      case IRSDKVarType.irsdk_int:
+      case IRSDKVarType.irsdk_bitField:
+        values.push(input.readInt32LE(byteOffset));
+        break;
+      case IRSDKVarType.irsdk_float:
+        values.push(input.readFloatLE(byteOffset));
+        break;
+      case IRSDKVarType.irsdk_double:
+        values.push(input.readDoubleLE(byteOffset));
+        break;
+    }
+  }
+
+  return values as string[] | boolean[] | number[];
+}
+
+/**
  * Reads an array of variable values based on the variable type.
  *
  * The input buffer will be skipped ahead to the offset included in the variable type
@@ -331,5 +380,54 @@ async function readSingleValue(input: Bufferer, type: IRSDKVarType) {
       return await input.nextFloat();
     case IRSDKVarType.irsdk_double:
       return await input.nextDouble();
+  }
+}
+
+function capitalizeFirstLetter(str: string) {
+  if (str.length > 0) {
+    return str.substring(0, 1).toUpperCase() + str.substring(1);
+  } else {
+    return str;
+  }
+}
+
+function generate(vars: IBT_Variable[]) {
+  for (const v of vars) {
+    const methodName = "get" + capitalizeFirstLetter(v.name);
+
+    console.log("/**");
+    console.log(` * ${v.description}`);
+    console.log(" *");
+    console.log(` * Unit: ${v.unit}`);
+    console.log(" */");
+    console.log(`${methodName}() {`);
+
+    const single = v.count === 1;
+    let valueType: string;
+    switch (v.type) {
+      case IRSDKVarType.irsdk_char:
+        valueType = "string[]";
+        break;
+      case IRSDKVarType.irsdk_bool:
+        valueType = "boolean[]";
+        break;
+      case IRSDKVarType.irsdk_int:
+      case IRSDKVarType.irsdk_bitField:
+      case IRSDKVarType.irsdk_float:
+      case IRSDKVarType.irsdk_double:
+        valueType = "number[]";
+        break;
+    }
+
+    console.log(`  const val = this.data.get("${v.name}");`);
+    console.log(
+      `  if(val !== undefined) return (val as ${valueType})${
+        single ? "[0]" : ""
+      } ?? null;`,
+    );
+    console.log(`  return null;`);
+    console.log("}");
+
+    console.log("");
   }
 }

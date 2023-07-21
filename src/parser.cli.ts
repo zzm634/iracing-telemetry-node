@@ -23,9 +23,11 @@ async function run() {
     () => false,
     (data) => {
       if (data instanceof TelemetrySample) {
-        samples++;
+        console.log({
+          something: data.getPlayerTrackSurface(),
+        });
       }
-
+      samples++;
       if (samples % 128 === 0) {
         console.log(samples);
       }

@@ -1,7 +1,6 @@
 // memory-mapped files and other windows events
 
 import { Observable } from "rxjs";
-import { Interruptible } from "./async";
 import ref from "ref-napi";
 import ffi from "ffi-napi";
 

@@ -16,6 +16,15 @@ export enum IRSDKVarType {
   irsdk_double,
 }
 
+export const IRSDKVarTypeWidth: Record<IRSDKVarType, number> = {
+  [IRSDKVarType.irsdk_char]: 1,
+  [IRSDKVarType.irsdk_bool]: 1,
+  [IRSDKVarType.irsdk_int]: 4,
+  [IRSDKVarType.irsdk_bitField]: 4,
+  [IRSDKVarType.irsdk_float]: 4,
+  [IRSDKVarType.irsdk_double]: 8,
+};
+
 /** Basic metadata about a telemetry variable */
 export type IRTVar = {
   name: string;
@@ -62,18 +71,50 @@ Because TS enums are trash, I'm making my own. These M_ prefixed constants are "
 If I was cooler, I could figure out a way to make sure each of the number values was a power of two and that they were all unique. But alas. that's up the user I guess
 */
 
-type Bitmask = Record<string, number>;
+export type Bitmask = Record<string, number>;
 
-export const M_EngineWarning: Bitmask = {
+function isPowerOfTwo(i: number) {
+  // shift right until we get the first 1
+  if (i === 0) {
+    return false;
+  } else if ((i & 1) === 1) {
+    return i === 1;
+  } else {
+    return isPowerOfTwo(i >>> 1);
+  }
+}
+
+function checkBitmask<E extends Bitmask>(bitmask: E): E {
+  // make sure each value only has a single "one" bit in it, and that they're all unique
+
+  let masks = 0;
+  for (const maskName in bitmask) {
+    const mask = bitmask[maskName] as number;
+    if (!isPowerOfTwo(mask)) {
+      throw new Error(`bitmask field "${maskName}" is not a power of two`);
+    }
+    const newMasks = masks | mask;
+    if (newMasks === masks) {
+      throw new Error(
+        `bitmask field "${maskName}" overlaps with other mask values`,
+      );
+    }
+    masks = newMasks;
+  }
+
+  return bitmask;
+}
+
+export const M_EngineWarning = checkBitmask({
   WaterTemp: 1,
   FuelPressure: 2,
   OilPressure: 4,
   EngineStalled: 8,
   PitSpeedLimiter: 16,
   RevLimiterActive: 32,
-};
+});
 
-export const M_Flag: Bitmask = {
+export const M_Flag = checkBitmask({
   Checkered: 1,
   White: 2,
   Green: 4,
@@ -99,9 +140,9 @@ export const M_Flag: Bitmask = {
   StartReady: 536870912,
   StartSet: 1073741824,
   StartGo: 2147483648,
-};
+});
 
-export const M_CameraState: Bitmask = {
+export const M_CameraState = checkBitmask({
   IsSessionScreen: 1,
   IsScenicActive: 2,
   CamToolActive: 4,
@@ -111,9 +152,9 @@ export const M_CameraState: Bitmask = {
   UseKeyAcceleration: 64,
   UseKey10xAcceleration: 128,
   UseMouseAimMode: 256,
-};
+});
 
-export const M_PitSvFlags: Bitmask = {
+export const M_PitSvFlags = checkBitmask({
   LFTireChange: 1,
   RFTireChange: 2,
   LRTireChange: 4,
@@ -121,7 +162,7 @@ export const M_PitSvFlags: Bitmask = {
   FuelFill: 0x10,
   WindshieldTearoff: 0x20,
   FastRepair: 0x40,
-};
+});
 
 /**
  * Checks for the presence of bits in the given bitmask value using the given "enum"
@@ -146,7 +187,7 @@ export function toEnumSet<E extends Bitmask>(
 /* Some values are enums */
 
 /** Track location */
-enum TrkLok {
+export enum E_TrkLoc {
   NotInWorld = -1,
   OffTrack = 0,
   InPitStall,
@@ -154,7 +195,7 @@ enum TrkLok {
   OnTrack,
 }
 
-enum TrkSurf {
+export enum E_TrkSurf {
   SurfaceNotInWorld = -1,
   Undefined = 0,
   Asphalt1,
@@ -186,7 +227,7 @@ enum TrkSurf {
   Astroturf,
 }
 
-enum SessionState {
+export enum E_SessionState {
   Invalid,
   GetInCar,
   Warmup,
@@ -196,7 +237,7 @@ enum SessionState {
   Cooldown,
 }
 
-enum CarLeftRight {
+export enum E_CarLeftRight {
   /** Spotter disabled */
   Off,
   /** No cars around us */
@@ -212,6 +253,33 @@ enum CarLeftRight {
   /** 3-wide, 2 cars on the right */
   Cars2Right,
 }
+
+export enum E_PaceMode {
+  SingleFileStart,
+  DoubleFileStart,
+  SingleFileRestart,
+  DoubleFileRestart,
+  NotPacing,
+}
+
+export enum E_PitSvStatus {
+  None,
+  InProgress,
+  Complete,
+
+  TooFarLeft = 100,
+  TooFarRight,
+  TooFarForward,
+  TooFarBack,
+  BadAngle,
+  CantFixThat,
+}
+
+export const M_PaceFlags = checkBitmask({
+  EndOfLine: 1,
+  FreePass: 2,
+  WavedAround: 4,
+});
 
 /**
  * An IRTValue is an IRTVar that has an actual value.

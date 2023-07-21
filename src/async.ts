@@ -302,3 +302,17 @@ export function mapAsync<A, B>(
     ? mapAsyncBuffered(source, transform)
     : mapAsyncDrop(source, transform);
 }
+
+export type Lazy<E> = () => E;
+
+/** Returns a new supplier function that caches the first value returned from the given supplier function */
+export function lazy<E>(supplier: () => E): Lazy<E> {
+  let value = null as null | { v: E };
+
+  return () => {
+    if (value === null) {
+      value = { v: supplier() };
+    }
+    return value.v;
+  };
+}

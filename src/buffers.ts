@@ -116,16 +116,7 @@ export class FileDataSource implements DataSource {
     if (this.file !== null) {
       FileDataSource.LOGGER.debug("closing file: " + this.path);
       const f = this.file;
-      await new Promise((res, rej) => {
-        f.readStream.close((err) => {
-          if (err) {
-            rej(err);
-          } else {
-            res(undefined);
-          }
-        });
-      });
-
+      f.readStream.destroy();
       await f.handle.close();
     } else {
       FileDataSource.LOGGER.debug("file already closed.");
@@ -174,7 +165,7 @@ export class FileDataSource implements DataSource {
     if (this.isClosed) return;
     this.isClosed = true;
 
-    this.closeFile();
+    await this.closeFile();
   }
 }
 
@@ -243,6 +234,8 @@ export class Bufferer {
 
   /**
    * Creates a new Bufferer from the given Buffer.
+   *
+   * The returned Bufferer will be resettable.
    *
    * @param buffer the buffer to read data from
    * @param bigEndian whether the values are big-endian
@@ -423,6 +416,7 @@ export class Bufferer {
     return packet;
   }
 
+  /** returns the number of bytes that can be read without fetching new data */
   private bytesLeft() {
     if (this.buffer === null) {
       return 0;
@@ -560,7 +554,7 @@ export class Bufferer {
    */
   private static trimNull(str: string) {
     const nul = str.indexOf("\0");
-    if (nul > 0) {
+    if (nul >= 0) {
       return str.substring(0, nul);
     } else {
       return str;

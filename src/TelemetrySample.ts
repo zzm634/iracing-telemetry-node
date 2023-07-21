@@ -1,3 +1,5 @@
+import { timeStamp } from "console";
+import { Lazy, lazy } from "./async.js";
 import {
   IRTVar,
   IRTVarChar,
@@ -10,37 +12,61 @@ import {
   IRSDKVarType,
   IRTValue,
   toEnumSet,
+  Bitmask,
+  M_Flag,
+  E_TrkLoc,
+  E_TrkSurf,
+  M_PitSvFlags,
+  E_PaceMode,
 } from "./irsdk.js";
+
+export type SampleData = Map<string, string[] | number[] | boolean[]>;
 
 /**
  * TelemetrySample is a set of telemetry variables exported from the simulator at a single point in time.
  */
-
 export class TelemetrySample {
+  private data: Lazy<Map<string, string[] | number[] | boolean[]>>;
+
   constructor(
     private readonly metadata: Map<string, IRTVar>,
-    private readonly data: Map<string, any[]>,
-  ) {}
+    data: SampleData | Lazy<SampleData>,
+  ) {
+    if (data instanceof Map) {
+      this.data = () => data;
+    } else {
+      this.data = data;
+    }
+  }
 
   /**
    * Returns an object with all values dereferenced. Useful for debugging.
    *
    * If a variable is single-valued, it will be returned as a single value. Otherwise, it will be an array.
    */
-  getAll(): Record<string, any> {
-    const all: Record<string, any> = {};
+  getAllValues() {
+    const all: Record<
+      string,
+      null | string | number | boolean | string[] | number[] | boolean[]
+    > = {};
     for (const varName of this.metadata.keys()) {
-      const value = this.data.get(varName);
+      const value = this.data().get(varName);
       if (value === null || value === undefined) {
         all[varName] = null;
       } else if (value.length === 1) {
-        all[varName] = value[0];
+        all[varName] = value[0]!;
       } else {
         all[varName] = value;
       }
     }
 
     return all;
+  }
+
+  getAll(): IRTValue[] {
+    return [...this.metadata.keys()]
+      .map((val) => this.getRaw(val))
+      .filter(Boolean) as IRTValue[];
   }
 
   /**
@@ -51,7 +77,7 @@ export class TelemetrySample {
   getRaw(name: string): IRTValue | null {
     const varMeta = this.metadata.get(name);
     if (varMeta !== undefined) {
-      const value = this.data.get(name);
+      const value = this.data().get(name);
       if (value !== null) {
         switch (varMeta.type) {
           case IRSDKVarType.irsdk_char:
@@ -119,53 +145,78 @@ export class TelemetrySample {
     return (this.getRaw(name)?.values[0] ?? null) as boolean | null;
   }
 
-  getAirDensity() {
-    return this.getSingleNumber("AirDensity");
+  private getBitmaskField<BM extends Bitmask>(
+    name: string,
+    bitmask: BM,
+  ): Set<keyof BM> | null {
+    const value = this.getSingleNumber(name);
+    if (value === null) return null;
+    const valueSet = new Set<keyof BM>();
+    for (const bmName in bitmask) {
+      const mask = bitmask[bmName]!;
+      if ((mask & value) !== 0) {
+        valueSet.add(bmName);
+      }
+    }
+    return valueSet;
   }
 
-  getAirPressure() {
-    return this.getSingleNumber("AirPressure");
+  /* helper methods for known variables */
+
+  /* generated code */
+
+  /**
+   * Session flags
+   *
+   * Unit: irsdk_Flags
+   */
+  getSessionFlags() {
+    return this.getBitmaskField("SessionFlags", M_Flag);
   }
 
-  getAirTemp() {
-    return this.getSingleNumber("AirTemp");
+  /**
+   * Players car track surface type
+   *
+   * Unit: irsdk_TrkLoc
+   */
+  getPlayerTrackSurface() {
+    return this.getSingleNumber("PlayerTrackSurface") as null | E_TrkLoc;
   }
 
-  getAlt() {
-    return this.getSingleNumber("Alt");
+  /**
+   * Players car track surface material type
+   *
+   * Unit: irsdk_TrkSurf
+   */
+  getPlayerTrackSurfaceMaterial() {
+    return this.getSingleNumber(
+      "PlayerTrackSurfaceMaterial",
+    ) as null | E_TrkSurf;
   }
 
-  getBrake() {
-    return this.getSingleNumber("Brake");
+  /**
+   * Players car pit service status bits
+   *
+   * Unit: irsdk_PitSvStatus
+   */
+  getPlayerCarPitSvStatus() {
+    return this.getBitmaskField("PlayerCarPitSvStatus", M_PitSvFlags);
   }
 
-  getBrakeABSActive() {
-    return this.getSingleBoolean("BrakeABSactive");
+  /**
+   * Are we pacing or not
+   *
+   * Unit: irsdk_PaceMode
+   */
+  getPaceMode() {
+    return this.getSingleNumber("PaceMode") as null | E_PaceMode;
   }
 
-  getBrakeABScutPct() {
-    return this.getSingleNumber("BrakeABScutPct");
-  }
-
-  getBrakeRaw() {
-    return this.getSingleNumber("BrakeRaw");
-  }
-
-  /** Center Front Splitter Ride Height */
-  getCFSRRideHeight() {
-    return this.getSingleNumber("CFSRrideHeight");
-  }
-
-  getChanAvgLatency() {
-    return this.getSingleNumber("ChanAvgLatency");
-  }
+  /* end generated code */
 
   // TODO the rest...
   // Some bitfield operators
   getEngineWarnings() {
-    const bitfield = this.getSingleNumber("EngineWarnings");
-    if (bitfield === null) return null;
-
-    return toEnumSet(bitfield, M_EngineWarning);
+    return this.getBitmaskField("EngineWarnings", M_EngineWarning);
   }
 }
