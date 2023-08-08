@@ -3,7 +3,7 @@
 import { PathLike, ReadStream } from "fs";
 import { FileHandle, open } from "fs/promises";
 
-import { rootLogger } from "./logger.js";
+import { rootLogger } from "./logger";
 /**
  * A DataSource is a forward-moving, asynchronous provider of data buffers. Data sources can provide as much or as little data as they want when a request comes in for more data.
  *
@@ -167,6 +167,37 @@ export class FileDataSource implements DataSource {
 
     await this.closeFile();
   }
+}
+
+// export class MemoryMapDataSource implements DataSource {
+//   private done = false;
+//   constructor(private readonly mmapFileName: string) {}
+//   async read() {
+//     if (this.done) {
+//       throw new EndOfFileError();
+//     } else {
+//       this.done = true;
+//       return await readMemoryMappedFile(this.mmapFileName);
+//     }
+//   }
+//   close() {
+//     return Promise.resolve();
+//   }
+// }
+
+export class BufferDataSource implements DataSource {
+  private done = false;
+  constructor(private readonly buffer: Buffer) {}
+  read() {
+    if (this.done) {
+      return Promise.reject(new EndOfFileError());
+    } else {
+      this.done = true;
+      return Promise.resolve(this.buffer);
+    }
+  }
+
+  async close() {}
 }
 
 /**

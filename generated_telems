@@ -1,0 +1,2851 @@
+/**
+ * Seconds since session start
+ *
+ * Unit: s
+ */
+getSessionTime() {
+  const val = this.data.get("SessionTime");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * Current update number
+ *
+ * Unit: 
+ */
+getSessionTick() {
+  const val = this.data.get("SessionTick");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * Session number
+ *
+ * Unit: 
+ */
+getSessionNum() {
+  const val = this.data.get("SessionNum");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * Session state
+ *
+ * Unit: irsdk_SessionState
+ */
+getSessionState() {
+  const val = this.data.get("SessionState");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * Session ID
+ *
+ * Unit: 
+ */
+getSessionUniqueID() {
+  const val = this.data.get("SessionUniqueID");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * Session flags
+ *
+ * Unit: irsdk_Flags
+ */
+getSessionFlags() {
+  const val = this.data.get("SessionFlags");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * Seconds left till session ends
+ *
+ * Unit: s
+ */
+getSessionTimeRemain() {
+  const val = this.data.get("SessionTimeRemain");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * Old laps left till session ends use SessionLapsRemainEx
+ *
+ * Unit: 
+ */
+getSessionLapsRemain() {
+  const val = this.data.get("SessionLapsRemain");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * New improved laps left till session ends
+ *
+ * Unit: 
+ */
+getSessionLapsRemainEx() {
+  const val = this.data.get("SessionLapsRemainEx");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * Total number of seconds in session
+ *
+ * Unit: s
+ */
+getSessionTimeTotal() {
+  const val = this.data.get("SessionTimeTotal");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * Total number of laps in session
+ *
+ * Unit: 
+ */
+getSessionLapsTotal() {
+  const val = this.data.get("SessionLapsTotal");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * Joker laps remaining to be taken
+ *
+ * Unit: 
+ */
+getSessionJokerLapsRemain() {
+  const val = this.data.get("SessionJokerLapsRemain");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * Player is currently completing a joker lap
+ *
+ * Unit: 
+ */
+getSessionOnJokerLap() {
+  const val = this.data.get("SessionOnJokerLap");
+  if(val !== undefined) return (val as boolean[])[0] ?? null;
+  return null;
+}
+
+/**
+ * Time of day in seconds
+ *
+ * Unit: s
+ */
+getSessionTimeOfDay() {
+  const val = this.data.get("SessionTimeOfDay");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * Driver activated flag
+ *
+ * Unit: 
+ */
+getDriverMarker() {
+  const val = this.data.get("DriverMarker");
+  if(val !== undefined) return (val as boolean[])[0] ?? null;
+  return null;
+}
+
+/**
+ * Push to talk button state
+ *
+ * Unit: 
+ */
+getPushToTalk() {
+  const val = this.data.get("PushToTalk");
+  if(val !== undefined) return (val as boolean[])[0] ?? null;
+  return null;
+}
+
+/**
+ * Push to pass button state
+ *
+ * Unit: 
+ */
+getPushToPass() {
+  const val = this.data.get("PushToPass");
+  if(val !== undefined) return (val as boolean[])[0] ?? null;
+  return null;
+}
+
+/**
+ * Hybrid manual boost state
+ *
+ * Unit: 
+ */
+getManualBoost() {
+  const val = this.data.get("ManualBoost");
+  if(val !== undefined) return (val as boolean[])[0] ?? null;
+  return null;
+}
+
+/**
+ * Hybrid manual no boost state
+ *
+ * Unit: 
+ */
+getManualNoBoost() {
+  const val = this.data.get("ManualNoBoost");
+  if(val !== undefined) return (val as boolean[])[0] ?? null;
+  return null;
+}
+
+/**
+ * 1=Car on track physics running with player in car
+ *
+ * Unit: 
+ */
+getIsOnTrack() {
+  const val = this.data.get("IsOnTrack");
+  if(val !== undefined) return (val as boolean[])[0] ?? null;
+  return null;
+}
+
+/**
+ * Average frames per second
+ *
+ * Unit: fps
+ */
+getFrameRate() {
+  const val = this.data.get("FrameRate");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * Percent of available tim fg thread took with a 1 sec avg
+ *
+ * Unit: %
+ */
+getCpuUsageFG() {
+  const val = this.data.get("CpuUsageFG");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * Percent of available tim gpu took with a 1 sec avg
+ *
+ * Unit: %
+ */
+getGpuUsage() {
+  const val = this.data.get("GpuUsage");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * Communications average latency
+ *
+ * Unit: s
+ */
+getChanAvgLatency() {
+  const val = this.data.get("ChanAvgLatency");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * Communications latency
+ *
+ * Unit: s
+ */
+getChanLatency() {
+  const val = this.data.get("ChanLatency");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * Communications quality
+ *
+ * Unit: %
+ */
+getChanQuality() {
+  const val = this.data.get("ChanQuality");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * Partner communications quality
+ *
+ * Unit: %
+ */
+getChanPartnerQuality() {
+  const val = this.data.get("ChanPartnerQuality");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * Percent of available tim bg thread took with a 1 sec avg
+ *
+ * Unit: %
+ */
+getCpuUsageBG() {
+  const val = this.data.get("CpuUsageBG");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * Communications server clock skew
+ *
+ * Unit: s
+ */
+getChanClockSkew() {
+  const val = this.data.get("ChanClockSkew");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * Memory page faults per second
+ *
+ * Unit: 
+ */
+getMemPageFaultSec() {
+  const val = this.data.get("MemPageFaultSec");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * Memory soft page faults per second
+ *
+ * Unit: 
+ */
+getMemSoftPageFaultSec() {
+  const val = this.data.get("MemSoftPageFaultSec");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * Players position in race
+ *
+ * Unit: 
+ */
+getPlayerCarPosition() {
+  const val = this.data.get("PlayerCarPosition");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * Players class position in race
+ *
+ * Unit: 
+ */
+getPlayerCarClassPosition() {
+  const val = this.data.get("PlayerCarClassPosition");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * Player car class id
+ *
+ * Unit: 
+ */
+getPlayerCarClass() {
+  const val = this.data.get("PlayerCarClass");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * Players car track surface type
+ *
+ * Unit: irsdk_TrkLoc
+ */
+getPlayerTrackSurface() {
+  const val = this.data.get("PlayerTrackSurface");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * Players car track surface material type
+ *
+ * Unit: irsdk_TrkSurf
+ */
+getPlayerTrackSurfaceMaterial() {
+  const val = this.data.get("PlayerTrackSurfaceMaterial");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * Players carIdx
+ *
+ * Unit: 
+ */
+getPlayerCarIdx() {
+  const val = this.data.get("PlayerCarIdx");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * Players team incident count for this session
+ *
+ * Unit: 
+ */
+getPlayerCarTeamIncidentCount() {
+  const val = this.data.get("PlayerCarTeamIncidentCount");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * Players own incident count for this session
+ *
+ * Unit: 
+ */
+getPlayerCarMyIncidentCount() {
+  const val = this.data.get("PlayerCarMyIncidentCount");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * Teams current drivers incident count for this session
+ *
+ * Unit: 
+ */
+getPlayerCarDriverIncidentCount() {
+  const val = this.data.get("PlayerCarDriverIncidentCount");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * Players weight penalty
+ *
+ * Unit: kg
+ */
+getPlayerCarWeightPenalty() {
+  const val = this.data.get("PlayerCarWeightPenalty");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * Players power adjust
+ *
+ * Unit: %
+ */
+getPlayerCarPowerAdjust() {
+  const val = this.data.get("PlayerCarPowerAdjust");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * Players dry tire set limit
+ *
+ * Unit: 
+ */
+getPlayerCarDryTireSetLimit() {
+  const val = this.data.get("PlayerCarDryTireSetLimit");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * Players car is being towed if time is greater than zero
+ *
+ * Unit: s
+ */
+getPlayerCarTowTime() {
+  const val = this.data.get("PlayerCarTowTime");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * Players car is properly in there pitstall
+ *
+ * Unit: 
+ */
+getPlayerCarInPitStall() {
+  const val = this.data.get("PlayerCarInPitStall");
+  if(val !== undefined) return (val as boolean[])[0] ?? null;
+  return null;
+}
+
+/**
+ * Players car pit service status bits
+ *
+ * Unit: irsdk_PitSvStatus
+ */
+getPlayerCarPitSvStatus() {
+  const val = this.data.get("PlayerCarPitSvStatus");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * Players car current tire compound
+ *
+ * Unit: 
+ */
+getPlayerTireCompound() {
+  const val = this.data.get("PlayerTireCompound");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * Players car number of fast repairs used
+ *
+ * Unit: 
+ */
+getPlayerFastRepairsUsed() {
+  const val = this.data.get("PlayerFastRepairsUsed");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * Are we pacing or not
+ *
+ * Unit: irsdk_PaceMode
+ */
+getPaceMode() {
+  const val = this.data.get("PaceMode");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * Is the player car on pit road between the cones
+ *
+ * Unit: 
+ */
+getOnPitRoad() {
+  const val = this.data.get("OnPitRoad");
+  if(val !== undefined) return (val as boolean[])[0] ?? null;
+  return null;
+}
+
+/**
+ * Steering wheel angle
+ *
+ * Unit: rad
+ */
+getSteeringWheelAngle() {
+  const val = this.data.get("SteeringWheelAngle");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * 0=off throttle to 1=full throttle
+ *
+ * Unit: %
+ */
+getThrottle() {
+  const val = this.data.get("Throttle");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * 0=brake released to 1=max pedal force
+ *
+ * Unit: %
+ */
+getBrake() {
+  const val = this.data.get("Brake");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * 0=disengaged to 1=fully engaged
+ *
+ * Unit: %
+ */
+getClutch() {
+  const val = this.data.get("Clutch");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * -1=reverse  0=neutral  1..n=current gear
+ *
+ * Unit: 
+ */
+getGear() {
+  const val = this.data.get("Gear");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * Engine rpm
+ *
+ * Unit: revs/min
+ */
+getRPM() {
+  const val = this.data.get("RPM");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * Laps started count
+ *
+ * Unit: 
+ */
+getLap() {
+  const val = this.data.get("Lap");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * Laps completed count
+ *
+ * Unit: 
+ */
+getLapCompleted() {
+  const val = this.data.get("LapCompleted");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * Meters traveled from S/F this lap
+ *
+ * Unit: m
+ */
+getLapDist() {
+  const val = this.data.get("LapDist");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * Percentage distance around lap
+ *
+ * Unit: %
+ */
+getLapDistPct() {
+  const val = this.data.get("LapDistPct");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * Players best lap number
+ *
+ * Unit: 
+ */
+getLapBestLap() {
+  const val = this.data.get("LapBestLap");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * Players best lap time
+ *
+ * Unit: s
+ */
+getLapBestLapTime() {
+  const val = this.data.get("LapBestLapTime");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * Players last lap time
+ *
+ * Unit: s
+ */
+getLapLastLapTime() {
+  const val = this.data.get("LapLastLapTime");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * Estimate of players current lap time as shown in F3 box
+ *
+ * Unit: s
+ */
+getLapCurrentLapTime() {
+  const val = this.data.get("LapCurrentLapTime");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * Player num consecutive clean laps completed for N average
+ *
+ * Unit: 
+ */
+getLapLasNLapSeq() {
+  const val = this.data.get("LapLasNLapSeq");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * Player last N average lap time
+ *
+ * Unit: s
+ */
+getLapLastNLapTime() {
+  const val = this.data.get("LapLastNLapTime");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * Player last lap in best N average lap time
+ *
+ * Unit: 
+ */
+getLapBestNLapLap() {
+  const val = this.data.get("LapBestNLapLap");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * Player best N average lap time
+ *
+ * Unit: s
+ */
+getLapBestNLapTime() {
+  const val = this.data.get("LapBestNLapTime");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * Delta time for best lap
+ *
+ * Unit: s
+ */
+getLapDeltaToBestLap() {
+  const val = this.data.get("LapDeltaToBestLap");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * Rate of change of delta time for best lap
+ *
+ * Unit: s/s
+ */
+getLapDeltaToBestLap_DD() {
+  const val = this.data.get("LapDeltaToBestLap_DD");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * Delta time for best lap is valid
+ *
+ * Unit: 
+ */
+getLapDeltaToBestLap_OK() {
+  const val = this.data.get("LapDeltaToBestLap_OK");
+  if(val !== undefined) return (val as boolean[])[0] ?? null;
+  return null;
+}
+
+/**
+ * Delta time for optimal lap
+ *
+ * Unit: s
+ */
+getLapDeltaToOptimalLap() {
+  const val = this.data.get("LapDeltaToOptimalLap");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * Rate of change of delta time for optimal lap
+ *
+ * Unit: s/s
+ */
+getLapDeltaToOptimalLap_DD() {
+  const val = this.data.get("LapDeltaToOptimalLap_DD");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * Delta time for optimal lap is valid
+ *
+ * Unit: 
+ */
+getLapDeltaToOptimalLap_OK() {
+  const val = this.data.get("LapDeltaToOptimalLap_OK");
+  if(val !== undefined) return (val as boolean[])[0] ?? null;
+  return null;
+}
+
+/**
+ * Delta time for session best lap
+ *
+ * Unit: s
+ */
+getLapDeltaToSessionBestLap() {
+  const val = this.data.get("LapDeltaToSessionBestLap");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * Rate of change of delta time for session best lap
+ *
+ * Unit: s/s
+ */
+getLapDeltaToSessionBestLap_DD() {
+  const val = this.data.get("LapDeltaToSessionBestLap_DD");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * Delta time for session best lap is valid
+ *
+ * Unit: 
+ */
+getLapDeltaToSessionBestLap_OK() {
+  const val = this.data.get("LapDeltaToSessionBestLap_OK");
+  if(val !== undefined) return (val as boolean[])[0] ?? null;
+  return null;
+}
+
+/**
+ * Delta time for session optimal lap
+ *
+ * Unit: s
+ */
+getLapDeltaToSessionOptimalLap() {
+  const val = this.data.get("LapDeltaToSessionOptimalLap");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * Rate of change of delta time for session optimal lap
+ *
+ * Unit: s/s
+ */
+getLapDeltaToSessionOptimalLap_DD() {
+  const val = this.data.get("LapDeltaToSessionOptimalLap_DD");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * Delta time for session optimal lap is valid
+ *
+ * Unit: 
+ */
+getLapDeltaToSessionOptimalLap_OK() {
+  const val = this.data.get("LapDeltaToSessionOptimalLap_OK");
+  if(val !== undefined) return (val as boolean[])[0] ?? null;
+  return null;
+}
+
+/**
+ * Delta time for session last lap
+ *
+ * Unit: s
+ */
+getLapDeltaToSessionLastlLap() {
+  const val = this.data.get("LapDeltaToSessionLastlLap");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * Rate of change of delta time for session last lap
+ *
+ * Unit: s/s
+ */
+getLapDeltaToSessionLastlLap_DD() {
+  const val = this.data.get("LapDeltaToSessionLastlLap_DD");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * Delta time for session last lap is valid
+ *
+ * Unit: 
+ */
+getLapDeltaToSessionLastlLap_OK() {
+  const val = this.data.get("LapDeltaToSessionLastlLap_OK");
+  if(val !== undefined) return (val as boolean[])[0] ?? null;
+  return null;
+}
+
+/**
+ * GPS vehicle speed
+ *
+ * Unit: m/s
+ */
+getSpeed() {
+  const val = this.data.get("Speed");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * Yaw orientation
+ *
+ * Unit: rad
+ */
+getYaw() {
+  const val = this.data.get("Yaw");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * Yaw orientation relative to north
+ *
+ * Unit: rad
+ */
+getYawNorth() {
+  const val = this.data.get("YawNorth");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * Pitch orientation
+ *
+ * Unit: rad
+ */
+getPitch() {
+  const val = this.data.get("Pitch");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * Roll orientation
+ *
+ * Unit: rad
+ */
+getRoll() {
+  const val = this.data.get("Roll");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * Indicate action the reset key will take 0 enter 1 exit 2 reset
+ *
+ * Unit: 
+ */
+getEnterExitReset() {
+  const val = this.data.get("EnterExitReset");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * Latitude in decimal degrees
+ *
+ * Unit: deg
+ */
+getLat() {
+  const val = this.data.get("Lat");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * Longitude in decimal degrees
+ *
+ * Unit: deg
+ */
+getLon() {
+  const val = this.data.get("Lon");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * Altitude in meters
+ *
+ * Unit: m
+ */
+getAlt() {
+  const val = this.data.get("Alt");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * Deprecated  set to TrackTempCrew
+ *
+ * Unit: C
+ */
+getTrackTemp() {
+  const val = this.data.get("TrackTemp");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * Temperature of track measured by crew around track
+ *
+ * Unit: C
+ */
+getTrackTempCrew() {
+  const val = this.data.get("TrackTempCrew");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * Temperature of air at start/finish line
+ *
+ * Unit: C
+ */
+getAirTemp() {
+  const val = this.data.get("AirTemp");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * Weather type (0=constant  1=dynamic)
+ *
+ * Unit: 
+ */
+getWeatherType() {
+  const val = this.data.get("WeatherType");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * Skies (0=clear/1=p cloudy/2=m cloudy/3=overcast)
+ *
+ * Unit: 
+ */
+getSkies() {
+  const val = this.data.get("Skies");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * Density of air at start/finish line
+ *
+ * Unit: kg/m^3
+ */
+getAirDensity() {
+  const val = this.data.get("AirDensity");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * Pressure of air at start/finish line
+ *
+ * Unit: Hg
+ */
+getAirPressure() {
+  const val = this.data.get("AirPressure");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * Wind velocity at start/finish line
+ *
+ * Unit: m/s
+ */
+getWindVel() {
+  const val = this.data.get("WindVel");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * Wind direction at start/finish line
+ *
+ * Unit: rad
+ */
+getWindDir() {
+  const val = this.data.get("WindDir");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * Relative Humidity
+ *
+ * Unit: %
+ */
+getRelativeHumidity() {
+  const val = this.data.get("RelativeHumidity");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * Fog level
+ *
+ * Unit: %
+ */
+getFogLevel() {
+  const val = this.data.get("FogLevel");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * Sun angle above horizon in radians
+ *
+ * Unit: rad
+ */
+getSolarAltitude() {
+  const val = this.data.get("SolarAltitude");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * Sun angle clockwise from north in radians
+ *
+ * Unit: rad
+ */
+getSolarAzimuth() {
+  const val = this.data.get("SolarAzimuth");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * True if pit stop is allowed for the current player
+ *
+ * Unit: 
+ */
+getPitsOpen() {
+  const val = this.data.get("PitsOpen");
+  if(val !== undefined) return (val as boolean[])[0] ?? null;
+  return null;
+}
+
+/**
+ * Time left for mandatory pit repairs if repairs are active
+ *
+ * Unit: s
+ */
+getPitRepairLeft() {
+  const val = this.data.get("PitRepairLeft");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * Time left for optional repairs if repairs are active
+ *
+ * Unit: s
+ */
+getPitOptRepairLeft() {
+  const val = this.data.get("PitOptRepairLeft");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * Is the player getting pit stop service
+ *
+ * Unit: 
+ */
+getPitstopActive() {
+  const val = this.data.get("PitstopActive");
+  if(val !== undefined) return (val as boolean[])[0] ?? null;
+  return null;
+}
+
+/**
+ * How many fast repairs used so far
+ *
+ * Unit: 
+ */
+getFastRepairUsed() {
+  const val = this.data.get("FastRepairUsed");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * How many fast repairs left  255 is unlimited
+ *
+ * Unit: 
+ */
+getFastRepairAvailable() {
+  const val = this.data.get("FastRepairAvailable");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * How many left front tires used so far
+ *
+ * Unit: 
+ */
+getLFTiresUsed() {
+  const val = this.data.get("LFTiresUsed");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * How many right front tires used so far
+ *
+ * Unit: 
+ */
+getRFTiresUsed() {
+  const val = this.data.get("RFTiresUsed");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * How many left rear tires used so far
+ *
+ * Unit: 
+ */
+getLRTiresUsed() {
+  const val = this.data.get("LRTiresUsed");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * How many right rear tires used so far
+ *
+ * Unit: 
+ */
+getRRTiresUsed() {
+  const val = this.data.get("RRTiresUsed");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * How many left tire sets used so far
+ *
+ * Unit: 
+ */
+getLeftTireSetsUsed() {
+  const val = this.data.get("LeftTireSetsUsed");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * How many right tire sets used so far
+ *
+ * Unit: 
+ */
+getRightTireSetsUsed() {
+  const val = this.data.get("RightTireSetsUsed");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * How many front tire sets used so far
+ *
+ * Unit: 
+ */
+getFrontTireSetsUsed() {
+  const val = this.data.get("FrontTireSetsUsed");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * How many rear tire sets used so far
+ *
+ * Unit: 
+ */
+getRearTireSetsUsed() {
+  const val = this.data.get("RearTireSetsUsed");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * How many tire sets used so far
+ *
+ * Unit: 
+ */
+getTireSetsUsed() {
+  const val = this.data.get("TireSetsUsed");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * How many left front tires are remaining  255 is unlimited
+ *
+ * Unit: 
+ */
+getLFTiresAvailable() {
+  const val = this.data.get("LFTiresAvailable");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * How many right front tires are remaining  255 is unlimited
+ *
+ * Unit: 
+ */
+getRFTiresAvailable() {
+  const val = this.data.get("RFTiresAvailable");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * How many left rear tires are remaining  255 is unlimited
+ *
+ * Unit: 
+ */
+getLRTiresAvailable() {
+  const val = this.data.get("LRTiresAvailable");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * How many right rear tires are remaining  255 is unlimited
+ *
+ * Unit: 
+ */
+getRRTiresAvailable() {
+  const val = this.data.get("RRTiresAvailable");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * How many left tire sets are remaining  255 is unlimited
+ *
+ * Unit: 
+ */
+getLeftTireSetsAvailable() {
+  const val = this.data.get("LeftTireSetsAvailable");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * How many right tire sets are remaining  255 is unlimited
+ *
+ * Unit: 
+ */
+getRightTireSetsAvailable() {
+  const val = this.data.get("RightTireSetsAvailable");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * How many front tire sets are remaining  255 is unlimited
+ *
+ * Unit: 
+ */
+getFrontTireSetsAvailable() {
+  const val = this.data.get("FrontTireSetsAvailable");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * How many rear tire sets are remaining  255 is unlimited
+ *
+ * Unit: 
+ */
+getRearTireSetsAvailable() {
+  const val = this.data.get("RearTireSetsAvailable");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * How many tire sets are remaining  255 is unlimited
+ *
+ * Unit: 
+ */
+getTireSetsAvailable() {
+  const val = this.data.get("TireSetsAvailable");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * 1=Car on track physics running
+ *
+ * Unit: 
+ */
+getIsOnTrackCar() {
+  const val = this.data.get("IsOnTrackCar");
+  if(val !== undefined) return (val as boolean[])[0] ?? null;
+  return null;
+}
+
+/**
+ * Steering wheel max angle
+ *
+ * Unit: rad
+ */
+getSteeringWheelAngleMax() {
+  const val = this.data.get("SteeringWheelAngleMax");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * Friction torque applied to gears when shifting or grinding
+ *
+ * Unit: %
+ */
+getShiftPowerPct() {
+  const val = this.data.get("ShiftPowerPct");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * RPM of shifter grinding noise
+ *
+ * Unit: RPM
+ */
+getShiftGrindRPM() {
+  const val = this.data.get("ShiftGrindRPM");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * Raw throttle input 0=off throttle to 1=full throttle
+ *
+ * Unit: %
+ */
+getThrottleRaw() {
+  const val = this.data.get("ThrottleRaw");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * Raw brake input 0=brake released to 1=max pedal force
+ *
+ * Unit: %
+ */
+getBrakeRaw() {
+  const val = this.data.get("BrakeRaw");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * Raw clutch input 0=disengaged to 1=fully engaged
+ *
+ * Unit: %
+ */
+getClutchRaw() {
+  const val = this.data.get("ClutchRaw");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * Raw handbrake input 0=handbrake released to 1=max force
+ *
+ * Unit: %
+ */
+getHandbrakeRaw() {
+  const val = this.data.get("HandbrakeRaw");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * true if abs is currently reducing brake force pressure
+ *
+ * Unit: 
+ */
+getBrakeABSactive() {
+  const val = this.data.get("BrakeABSactive");
+  if(val !== undefined) return (val as boolean[])[0] ?? null;
+  return null;
+}
+
+/**
+ * Percent of brake force reduction caused by ABS system
+ *
+ * Unit: %
+ */
+getBrakeABScutPct() {
+  const val = this.data.get("BrakeABScutPct");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * Bitfield for warning lights
+ *
+ * Unit: irsdk_EngineWarnings
+ */
+getEngineWarnings() {
+  const val = this.data.get("EngineWarnings");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * Percent fuel remaining
+ *
+ * Unit: %
+ */
+getFuelLevelPct() {
+  const val = this.data.get("FuelLevelPct");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * Bitfield of pit service checkboxes
+ *
+ * Unit: irsdk_PitSvFlags
+ */
+getPitSvFlags() {
+  const val = this.data.get("PitSvFlags");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * Pit service left front tire pressure
+ *
+ * Unit: kPa
+ */
+getPitSvLFP() {
+  const val = this.data.get("PitSvLFP");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * Pit service right front tire pressure
+ *
+ * Unit: kPa
+ */
+getPitSvRFP() {
+  const val = this.data.get("PitSvRFP");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * Pit service left rear tire pressure
+ *
+ * Unit: kPa
+ */
+getPitSvLRP() {
+  const val = this.data.get("PitSvLRP");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * Pit service right rear tire pressure
+ *
+ * Unit: kPa
+ */
+getPitSvRRP() {
+  const val = this.data.get("PitSvRRP");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * Pit service fuel add amount
+ *
+ * Unit: l or kWh
+ */
+getPitSvFuel() {
+  const val = this.data.get("PitSvFuel");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * Pit service pending tire compound
+ *
+ * Unit: 
+ */
+getPitSvTireCompound() {
+  const val = this.data.get("PitSvTireCompound");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * Force feedback % max torque on steering shaft unsigned
+ *
+ * Unit: %
+ */
+getSteeringWheelPctTorque() {
+  const val = this.data.get("SteeringWheelPctTorque");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * Force feedback % max torque on steering shaft signed
+ *
+ * Unit: %
+ */
+getSteeringWheelPctTorqueSign() {
+  const val = this.data.get("SteeringWheelPctTorqueSign");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * Force feedback % max torque on steering shaft signed stops
+ *
+ * Unit: %
+ */
+getSteeringWheelPctTorqueSignStops() {
+  const val = this.data.get("SteeringWheelPctTorqueSignStops");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * Force feedback % max smoothing
+ *
+ * Unit: %
+ */
+getSteeringWheelPctSmoothing() {
+  const val = this.data.get("SteeringWheelPctSmoothing");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * Force feedback % max damping
+ *
+ * Unit: %
+ */
+getSteeringWheelPctDamper() {
+  const val = this.data.get("SteeringWheelPctDamper");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * Force feedback limiter strength limits impacts and oscillation
+ *
+ * Unit: %
+ */
+getSteeringWheelLimiter() {
+  const val = this.data.get("SteeringWheelLimiter");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * Value of strength or max force slider in Nm for FFB
+ *
+ * Unit: N*m
+ */
+getSteeringWheelMaxForceNm() {
+  const val = this.data.get("SteeringWheelMaxForceNm");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * True if steering wheel force is using linear mode
+ *
+ * Unit: 
+ */
+getSteeringWheelUseLinear() {
+  const val = this.data.get("SteeringWheelUseLinear");
+  if(val !== undefined) return (val as boolean[])[0] ?? null;
+  return null;
+}
+
+/**
+ * DEPRECATED use DriverCarSLBlinkRPM instead
+ *
+ * Unit: %
+ */
+getShiftIndicatorPct() {
+  const val = this.data.get("ShiftIndicatorPct");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * Players LF Tire Sound rumblestrip pitch
+ *
+ * Unit: Hz
+ */
+getTireLF_RumblePitch() {
+  const val = this.data.get("TireLF_RumblePitch");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * Players RF Tire Sound rumblestrip pitch
+ *
+ * Unit: Hz
+ */
+getTireRF_RumblePitch() {
+  const val = this.data.get("TireRF_RumblePitch");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * Players LR Tire Sound rumblestrip pitch
+ *
+ * Unit: Hz
+ */
+getTireLR_RumblePitch() {
+  const val = this.data.get("TireLR_RumblePitch");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * Players RR Tire Sound rumblestrip pitch
+ *
+ * Unit: Hz
+ */
+getTireRR_RumblePitch() {
+  const val = this.data.get("TireRR_RumblePitch");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * Output torque on steering shaft at 360 Hz
+ *
+ * Unit: N*m
+ */
+getSteeringWheelTorque_ST() {
+  const val = this.data.get("SteeringWheelTorque_ST");
+  if(val !== undefined) return (val as number[]) ?? null;
+  return null;
+}
+
+/**
+ * Output torque on steering shaft
+ *
+ * Unit: N*m
+ */
+getSteeringWheelTorque() {
+  const val = this.data.get("SteeringWheelTorque");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * Z velocity
+ *
+ * Unit: m/s
+ */
+getVelocityZ() {
+  const val = this.data.get("VelocityZ");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * Y velocity
+ *
+ * Unit: m/s
+ */
+getVelocityY() {
+  const val = this.data.get("VelocityY");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * X velocity
+ *
+ * Unit: m/s
+ */
+getVelocityX() {
+  const val = this.data.get("VelocityX");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * Yaw rate
+ *
+ * Unit: rad/s
+ */
+getYawRate() {
+  const val = this.data.get("YawRate");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * Pitch rate
+ *
+ * Unit: rad/s
+ */
+getPitchRate() {
+  const val = this.data.get("PitchRate");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * Roll rate
+ *
+ * Unit: rad/s
+ */
+getRollRate() {
+  const val = this.data.get("RollRate");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * Vertical acceleration (including gravity)
+ *
+ * Unit: m/s^2
+ */
+getVertAccel() {
+  const val = this.data.get("VertAccel");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * Lateral acceleration (including gravity)
+ *
+ * Unit: m/s^2
+ */
+getLatAccel() {
+  const val = this.data.get("LatAccel");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * Longitudinal acceleration (including gravity)
+ *
+ * Unit: m/s^2
+ */
+getLongAccel() {
+  const val = this.data.get("LongAccel");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * In car trigger car starter
+ *
+ * Unit: 
+ */
+getDcStarter() {
+  const val = this.data.get("dcStarter");
+  if(val !== undefined) return (val as boolean[])[0] ?? null;
+  return null;
+}
+
+/**
+ * Pitstop right tire change request
+ *
+ * Unit: 
+ */
+getDpRTireChange() {
+  const val = this.data.get("dpRTireChange");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * Pitstop left tire change request
+ *
+ * Unit: 
+ */
+getDpLTireChange() {
+  const val = this.data.get("dpLTireChange");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * Pitstop fuel fill flag
+ *
+ * Unit: 
+ */
+getDpFuelFill() {
+  const val = this.data.get("dpFuelFill");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * Pitstop windshield tearoff
+ *
+ * Unit: 
+ */
+getDpWindshieldTearoff() {
+  const val = this.data.get("dpWindshieldTearoff");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * Pitstop fuel add amount
+ *
+ * Unit: kg
+ */
+getDpFuelAddKg() {
+  const val = this.data.get("dpFuelAddKg");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * Pitstop fast repair set
+ *
+ * Unit: 
+ */
+getDpFastRepair() {
+  const val = this.data.get("dpFastRepair");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * Pitstop qualify tape adjustment
+ *
+ * Unit: 
+ */
+getDpQTape() {
+  const val = this.data.get("dpQTape");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * In car brake bias adjustment
+ *
+ * Unit: 
+ */
+getDcBrakeBias() {
+  const val = this.data.get("dcBrakeBias");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * Pitstop lf tire cold pressure adjustment
+ *
+ * Unit: Pa
+ */
+getDpLFTireColdPress() {
+  const val = this.data.get("dpLFTireColdPress");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * Pitstop rf cold tire pressure adjustment
+ *
+ * Unit: Pa
+ */
+getDpRFTireColdPress() {
+  const val = this.data.get("dpRFTireColdPress");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * Pitstop lr tire cold pressure adjustment
+ *
+ * Unit: Pa
+ */
+getDpLRTireColdPress() {
+  const val = this.data.get("dpLRTireColdPress");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * Pitstop rr cold tire pressure adjustment
+ *
+ * Unit: Pa
+ */
+getDpRRTireColdPress() {
+  const val = this.data.get("dpRRTireColdPress");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * Pitstop left wedge/weight jacker adjustment
+ *
+ * Unit: 
+ */
+getDpWeightJackerLeft() {
+  const val = this.data.get("dpWeightJackerLeft");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * Pitstop right wedge/weight jacker adjustment
+ *
+ * Unit: 
+ */
+getDpWeightJackerRight() {
+  const val = this.data.get("dpWeightJackerRight");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * Engine fuel used instantaneous
+ *
+ * Unit: kg/h
+ */
+getFuelUsePerHour() {
+  const val = this.data.get("FuelUsePerHour");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * Engine voltage
+ *
+ * Unit: V
+ */
+getVoltage() {
+  const val = this.data.get("Voltage");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * Engine coolant temp
+ *
+ * Unit: C
+ */
+getWaterTemp() {
+  const val = this.data.get("WaterTemp");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * Engine coolant level
+ *
+ * Unit: l
+ */
+getWaterLevel() {
+  const val = this.data.get("WaterLevel");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * Engine fuel pressure
+ *
+ * Unit: bar
+ */
+getFuelPress() {
+  const val = this.data.get("FuelPress");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * Engine oil temperature
+ *
+ * Unit: C
+ */
+getOilTemp() {
+  const val = this.data.get("OilTemp");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * Engine oil pressure
+ *
+ * Unit: bar
+ */
+getOilPress() {
+  const val = this.data.get("OilPress");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * Engine oil level
+ *
+ * Unit: l
+ */
+getOilLevel() {
+  const val = this.data.get("OilLevel");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * Engine manifold pressure
+ *
+ * Unit: bar
+ */
+getManifoldPress() {
+  const val = this.data.get("ManifoldPress");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * Liters of fuel remaining
+ *
+ * Unit: l
+ */
+getFuelLevel() {
+  const val = this.data.get("FuelLevel");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * Engine0Engine rpm
+ *
+ * Unit: revs/min
+ */
+getEngine0_RPM() {
+  const val = this.data.get("Engine0_RPM");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * RF wheel speed
+ *
+ * Unit: m/s
+ */
+getRFspeed() {
+  const val = this.data.get("RFspeed");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * RF tire pressure
+ *
+ * Unit: kPa
+ */
+getRFpressure() {
+  const val = this.data.get("RFpressure");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * RF tire cold pressure  as set in the garage
+ *
+ * Unit: kPa
+ */
+getRFcoldPressure() {
+  const val = this.data.get("RFcoldPressure");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * RF tire left surface temperature
+ *
+ * Unit: C
+ */
+getRFtempL() {
+  const val = this.data.get("RFtempL");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * RF tire middle surface temperature
+ *
+ * Unit: C
+ */
+getRFtempM() {
+  const val = this.data.get("RFtempM");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * RF tire right surface temperature
+ *
+ * Unit: C
+ */
+getRFtempR() {
+  const val = this.data.get("RFtempR");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * RF tire left carcass temperature
+ *
+ * Unit: C
+ */
+getRFtempCL() {
+  const val = this.data.get("RFtempCL");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * RF tire middle carcass temperature
+ *
+ * Unit: C
+ */
+getRFtempCM() {
+  const val = this.data.get("RFtempCM");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * RF tire right carcass temperature
+ *
+ * Unit: C
+ */
+getRFtempCR() {
+  const val = this.data.get("RFtempCR");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * RF tire left percent tread remaining
+ *
+ * Unit: %
+ */
+getRFwearL() {
+  const val = this.data.get("RFwearL");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * RF tire middle percent tread remaining
+ *
+ * Unit: %
+ */
+getRFwearM() {
+  const val = this.data.get("RFwearM");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * RF tire right percent tread remaining
+ *
+ * Unit: %
+ */
+getRFwearR() {
+  const val = this.data.get("RFwearR");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * LF wheel speed
+ *
+ * Unit: m/s
+ */
+getLFspeed() {
+  const val = this.data.get("LFspeed");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * LF tire pressure
+ *
+ * Unit: kPa
+ */
+getLFpressure() {
+  const val = this.data.get("LFpressure");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * LF tire cold pressure  as set in the garage
+ *
+ * Unit: kPa
+ */
+getLFcoldPressure() {
+  const val = this.data.get("LFcoldPressure");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * LF tire left surface temperature
+ *
+ * Unit: C
+ */
+getLFtempL() {
+  const val = this.data.get("LFtempL");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * LF tire middle surface temperature
+ *
+ * Unit: C
+ */
+getLFtempM() {
+  const val = this.data.get("LFtempM");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * LF tire right surface temperature
+ *
+ * Unit: C
+ */
+getLFtempR() {
+  const val = this.data.get("LFtempR");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * LF tire left carcass temperature
+ *
+ * Unit: C
+ */
+getLFtempCL() {
+  const val = this.data.get("LFtempCL");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * LF tire middle carcass temperature
+ *
+ * Unit: C
+ */
+getLFtempCM() {
+  const val = this.data.get("LFtempCM");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * LF tire right carcass temperature
+ *
+ * Unit: C
+ */
+getLFtempCR() {
+  const val = this.data.get("LFtempCR");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * LF tire left percent tread remaining
+ *
+ * Unit: %
+ */
+getLFwearL() {
+  const val = this.data.get("LFwearL");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * LF tire middle percent tread remaining
+ *
+ * Unit: %
+ */
+getLFwearM() {
+  const val = this.data.get("LFwearM");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * LF tire right percent tread remaining
+ *
+ * Unit: %
+ */
+getLFwearR() {
+  const val = this.data.get("LFwearR");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * RR wheel speed
+ *
+ * Unit: m/s
+ */
+getRRspeed() {
+  const val = this.data.get("RRspeed");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * RR tire pressure
+ *
+ * Unit: kPa
+ */
+getRRpressure() {
+  const val = this.data.get("RRpressure");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * RR tire cold pressure  as set in the garage
+ *
+ * Unit: kPa
+ */
+getRRcoldPressure() {
+  const val = this.data.get("RRcoldPressure");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * RR tire left surface temperature
+ *
+ * Unit: C
+ */
+getRRtempL() {
+  const val = this.data.get("RRtempL");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * RR tire middle surface temperature
+ *
+ * Unit: C
+ */
+getRRtempM() {
+  const val = this.data.get("RRtempM");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * RR tire right surface temperature
+ *
+ * Unit: C
+ */
+getRRtempR() {
+  const val = this.data.get("RRtempR");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * RR tire left carcass temperature
+ *
+ * Unit: C
+ */
+getRRtempCL() {
+  const val = this.data.get("RRtempCL");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * RR tire middle carcass temperature
+ *
+ * Unit: C
+ */
+getRRtempCM() {
+  const val = this.data.get("RRtempCM");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * RR tire right carcass temperature
+ *
+ * Unit: C
+ */
+getRRtempCR() {
+  const val = this.data.get("RRtempCR");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * RR tire left percent tread remaining
+ *
+ * Unit: %
+ */
+getRRwearL() {
+  const val = this.data.get("RRwearL");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * RR tire middle percent tread remaining
+ *
+ * Unit: %
+ */
+getRRwearM() {
+  const val = this.data.get("RRwearM");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * RR tire right percent tread remaining
+ *
+ * Unit: %
+ */
+getRRwearR() {
+  const val = this.data.get("RRwearR");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * LR wheel speed
+ *
+ * Unit: m/s
+ */
+getLRspeed() {
+  const val = this.data.get("LRspeed");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * LR tire pressure
+ *
+ * Unit: kPa
+ */
+getLRpressure() {
+  const val = this.data.get("LRpressure");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * LR tire cold pressure  as set in the garage
+ *
+ * Unit: kPa
+ */
+getLRcoldPressure() {
+  const val = this.data.get("LRcoldPressure");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * LR tire left surface temperature
+ *
+ * Unit: C
+ */
+getLRtempL() {
+  const val = this.data.get("LRtempL");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * LR tire middle surface temperature
+ *
+ * Unit: C
+ */
+getLRtempM() {
+  const val = this.data.get("LRtempM");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * LR tire right surface temperature
+ *
+ * Unit: C
+ */
+getLRtempR() {
+  const val = this.data.get("LRtempR");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * LR tire left carcass temperature
+ *
+ * Unit: C
+ */
+getLRtempCL() {
+  const val = this.data.get("LRtempCL");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * LR tire middle carcass temperature
+ *
+ * Unit: C
+ */
+getLRtempCM() {
+  const val = this.data.get("LRtempCM");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * LR tire right carcass temperature
+ *
+ * Unit: C
+ */
+getLRtempCR() {
+  const val = this.data.get("LRtempCR");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * LR tire left percent tread remaining
+ *
+ * Unit: %
+ */
+getLRwearL() {
+  const val = this.data.get("LRwearL");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * LR tire middle percent tread remaining
+ *
+ * Unit: %
+ */
+getLRwearM() {
+  const val = this.data.get("LRwearM");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * LR tire right percent tread remaining
+ *
+ * Unit: %
+ */
+getLRwearR() {
+  const val = this.data.get("LRwearR");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * LRSH shock deflection
+ *
+ * Unit: m
+ */
+getLRSHshockDefl() {
+  const val = this.data.get("LRSHshockDefl");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * LRSH shock velocity
+ *
+ * Unit: m/s
+ */
+getLRSHshockVel() {
+  const val = this.data.get("LRSHshockVel");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * RRSH shock deflection
+ *
+ * Unit: m
+ */
+getRRSHshockDefl() {
+  const val = this.data.get("RRSHshockDefl");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * RRSH shock velocity
+ *
+ * Unit: m/s
+ */
+getRRSHshockVel() {
+  const val = this.data.get("RRSHshockVel");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * LFSH shock deflection
+ *
+ * Unit: m
+ */
+getLFSHshockDefl() {
+  const val = this.data.get("LFSHshockDefl");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * LFSH shock velocity
+ *
+ * Unit: m/s
+ */
+getLFSHshockVel() {
+  const val = this.data.get("LFSHshockVel");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * RFSH shock deflection
+ *
+ * Unit: m
+ */
+getRFSHshockDefl() {
+  const val = this.data.get("RFSHshockDefl");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * RFSH shock velocity
+ *
+ * Unit: m/s
+ */
+getRFSHshockVel() {
+  const val = this.data.get("RFSHshockVel");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * LF ride height
+ *
+ * Unit: m
+ */
+getLFrideHeight() {
+  const val = this.data.get("LFrideHeight");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * RF ride height
+ *
+ * Unit: m
+ */
+getRFrideHeight() {
+  const val = this.data.get("RFrideHeight");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * LR ride height
+ *
+ * Unit: m
+ */
+getLRrideHeight() {
+  const val = this.data.get("LRrideHeight");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * RR ride height
+ *
+ * Unit: m
+ */
+getRRrideHeight() {
+  const val = this.data.get("RRrideHeight");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+/**
+ * Center front splitter ride height
+ *
+ * Unit: m
+ */
+getCFSRrideHeight() {
+  const val = this.data.get("CFSRrideHeight");
+  if(val !== undefined) return (val as number[])[0] ?? null;
+  return null;
+}
+
+{ samples: 0, duration: 88.54672399908304 }
+done

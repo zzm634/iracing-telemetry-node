@@ -1,12 +1,12 @@
 // Telemetry file parser, usable for both .ibt files and memory mapped files
 
 import { Observable } from "rxjs";
-import { Bufferer, DataSource, EndOfFileError } from "./buffers.js";
-import { rootLogger } from "./logger.js";
-import { TelemetrySample } from "./TelemetrySample.js";
-import { IRSDKVarType, IRSDKVarTypeWidth, IRTVar } from "./irsdk.js";
-import { SessionData } from "./SessionData.js";
-import { lazy } from "./async.js";
+import { Bufferer, DataSource, EndOfFileError } from "./buffers";
+import { rootLogger } from "./logger";
+import { TelemetrySample } from "./events/TelemetrySample";
+import { IRSDKVarType, IRSDKVarTypeWidth, IRTVar } from "./irsdk";
+import { SessionData } from "./events/SessionData";
+import { lazy } from "./async";
 
 const logger = rootLogger.child({
   source: "parser.ts",
@@ -21,30 +21,25 @@ export function createTelemetryObservable(
   from: () => DataSource,
   options?: ParserOptions,
 ) {
-  return new Observable<TelemetrySample | SessionData>((subscriber) => {
-    let interrupt = false;
+  return new Observable<TelemetrySample | SessionData | TelemetryMetadata>(
+    (subscriber) => {
+      let interrupt = false;
 
-    const unsubscribe = () => {
-      interrupt = true;
-    };
+      const unsubscribe = () => {
+        interrupt = true;
+      };
 
-    const isInterrupted = () => {
-      return interrupt;
-    };
+      const isInterrupted = () => {
+        return interrupt;
+      };
 
-    const out = (data: TelemetrySample | SessionData | TelemetryMetadata) => {
-      if (!(data instanceof TelemetryMetadata)) {
-        // TODO should probably emit TMs too anyway
-        subscriber.next(data);
-      }
-    };
+      readIBT(from, isInterrupted, (data) => subscriber.next(data), options)
+        .then(() => subscriber.complete())
+        .catch((err) => subscriber.error(err));
 
-    readIBT(from, isInterrupted, out, options)
-      .then(() => subscriber.complete())
-      .catch((err) => subscriber.error(err));
-
-    return unsubscribe;
-  });
+      return unsubscribe;
+    },
+  );
 }
 
 /**
@@ -86,8 +81,26 @@ type ParserOptions = {
  * TelemetryMetadata describes properties of a telemetry file that are not included in the session info or telemetry samples. Always emitted when parsing an IBT file
  */
 export class TelemetryMetadata {
-  constructor(public readonly sessionInfoUpdate: number) {}
+  constructor(private readonly vars: IBT_Variable[]) {}
+
+  getVars() {
+    const varobj: any = {};
+
+    this.vars.forEach((v) => {
+      varobj[v.name] = {
+        description: v.description,
+        unit: v.unit,
+        isArray: v.count > 1,
+      };
+    });
+
+    return varobj;
+  }
 }
+
+// export function observeIBT(source: () => DataSource, options?: ParserOptions): Observable<TelemetrySample | TelemetryMetadata | SessionData> {
+//   return new Observable((subscriber) )
+// }
 
 /**
  * Reads IBT data from the given source and pipes it to the given consumer function (out).
@@ -98,13 +111,15 @@ export class TelemetryMetadata {
  *
  * @param source the data source to read data from. The data source will be closed by this method
  * @param isInterrupted a callback method that can check to see if we've been interrupted yet and should stop sending data
- * @param out a consumer function that accepts data
+ * @param out a consumer function that accepts data. If the consumer function returns a promise, it will be waited on. This will slow down processing, but guarantee a synchronous output. For fastest processing, use a synchronous consumer function
  * @param skipTo options governing whether we should skip reading samples or session data
  */
 export async function readIBT(
   source: DataSource | (() => DataSource),
   isInterrupted: () => boolean,
-  out: (data: TelemetrySample | SessionData | TelemetryMetadata) => void,
+  out: (
+    data: TelemetrySample | SessionData | TelemetryMetadata,
+  ) => void | Promise<void>,
   options?: ParserOptions,
 ) {
   const { skipToSample = 0, sessionInfoUpdate: lastSessionInfoUpdate = -1 } =
@@ -127,7 +142,7 @@ export async function readIBT(
   // The header contains lots of metadata about the structure of the file, including the variable descriptors
   const header = await parseHeader(input);
 
-  out(new TelemetryMetadata(header.sessionInfoUpdate));
+  // await out(new TelemetryMetadata(header.sessionInfoUpdate));
 
   if (logger.isDebugEnabled()) {
     logger.debug("header", header);
@@ -155,6 +170,7 @@ export async function readIBT(
   await input.skipTo(header.varHeadersOffset);
   const varHeaders = await readVariableHeaders(input, header.numVars);
 
+  await out(new TelemetryMetadata(varHeaders));
   const varHeadersByName = new Map<string, IBT_Variable>();
   varHeaders.forEach((vh) => varHeadersByName.set(vh.name, vh));
 
@@ -173,7 +189,7 @@ export async function readIBT(
     const sessionInfoYaml = await input.nextString(header.sessionInfoLen);
 
     // TODO parse this string and send it out
-    out(new SessionData(sessionInfoYaml, header.sessionInfoUpdate));
+    await out(new SessionData(sessionInfoYaml, header.sessionInfoUpdate));
   }
 
   // skip to start of sample buffer
@@ -208,7 +224,7 @@ export async function readIBT(
       return values;
     });
 
-    out(new TelemetrySample(varHeadersByName, lazySample));
+    await out(new TelemetrySample(varHeadersByName, lazySample));
   }
 
   await input.close();
@@ -334,53 +350,6 @@ function readVariableSync(input: Buffer, variable: IBT_Variable) {
   }
 
   return values as string[] | boolean[] | number[];
-}
-
-/**
- * Reads an array of variable values based on the variable type.
- *
- * The input buffer will be skipped ahead to the offset included in the variable type
- */
-async function readVariable(input: Bufferer, variable: IBT_Variable) {
-  await input.skipTo(variable.offset);
-  const values: any[] = [];
-  for (let i = 0; i < variable.count; ++i) {
-    values.push(await readSingleValue(input, variable.type));
-  }
-
-  switch (variable.type) {
-    case IRSDKVarType.irsdk_bool:
-      return values as boolean[];
-    case IRSDKVarType.irsdk_char:
-      return values as string[];
-    case IRSDKVarType.irsdk_int:
-    case IRSDKVarType.irsdk_bitField:
-    case IRSDKVarType.irsdk_float:
-    case IRSDKVarType.irsdk_double:
-      return values as number[];
-  }
-}
-
-/**
- * Reads a single variable value from the input based on the variable type.
- *
- * The input buffer should already be pointed at the start of the variable
- */
-async function readSingleValue(input: Bufferer, type: IRSDKVarType) {
-  switch (type) {
-    case IRSDKVarType.irsdk_char:
-      return await input.nextChar();
-    case IRSDKVarType.irsdk_bool:
-      return await input.nextBool();
-    case IRSDKVarType.irsdk_int:
-      return await input.nextInt();
-    case IRSDKVarType.irsdk_bitField:
-      return await input.nextBitField();
-    case IRSDKVarType.irsdk_float:
-      return await input.nextFloat();
-    case IRSDKVarType.irsdk_double:
-      return await input.nextDouble();
-  }
 }
 
 function capitalizeFirstLetter(str: string) {

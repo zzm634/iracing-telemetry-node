@@ -183,12 +183,30 @@ export type CompletablePromise<E> = ReturnType<
 
 export class QueueCompleteError extends Error {}
 
+export type Queue<E> = {
+  /**
+   * Retrieves the next value from this queue. If a value is available, it will be returned immediately, otherwise a promise will be returned that resolves when an item is added to the queue.
+   * @returns the next available value in the queue
+   * @throws the error passed to `close()` if the queue has been closed
+   */
+  take: () => Promise<E>;
+  /**
+   * Returns as many items in the queue that can be returned synchronously without waiting
+   */
+  drain: () => E[];
+  /**
+   * Signals to the producer supplying this queue that it is no longer going to be used
+   * @returns
+   */
+  close: () => void;
+};
+
 /**
  * BlockingQueue maintains a buffer of items that tasks can consume.
  *
  * There is no limit to the size of the queue or the number of tasks that can be waiting for items to consume.
  */
-export class BlockingQueue<E> {
+export class BlockingQueue<E> implements Queue<E> {
   // Only one of these two arrays should ever have items in it. Either we are adding items too fast and the "values" array will fill up, or we are consuming values too fast and the "waiters" array will fill up.
   // If we ever have both values and waiters at the same time, something horrible has happened.
 
@@ -451,6 +469,7 @@ export function collect<E>(o: Observable<E>) {
 
   return {
     take: () => queue.take(),
+    drain: () => queue.drain(),
     close: () => {
       subscription.unsubscribe();
       queue.close();

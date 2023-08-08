@@ -1,11 +1,15 @@
 // Defines possible telemetry sources and provides observables and shit for people to consume
 
-import { Observable, concat, of, single } from "rxjs";
-import { SessionData } from "./SessionData";
-import { TelemetrySample } from "./TelemetrySample";
+import { Observable, Subject, combineLatest, concat, map, of } from "rxjs";
+import { SessionData } from "./events/SessionData";
+import { TelemetrySample } from "./events/TelemetrySample";
 import { PathLike } from "fs";
-import { createTelemetryObservable } from "./parser";
-import { FileDataSource } from "./buffers";
+import {
+  TelemetryMetadata,
+  createTelemetryObservable,
+  readIBT,
+} from "./parser";
+import { DataSource, FileDataSource } from "./buffers";
 
 // Source can be:
 // - live telemetry
@@ -27,6 +31,7 @@ export class DisconnectedEvent {
 export type IREvent =
   | ConnectedEvent
   | DisconnectedEvent
+  | TelemetryMetadata
   | TelemetrySample
   | SessionData;
 
@@ -79,8 +84,138 @@ export function openIRacing(options?: {
    * Default is "live"
    */
   source?: "live" | "disk";
-}): Observable<IREvent> {
+}): RawIRacingObservable {
   const { updateRate, source = "live" } = options ?? {};
 
   throw new Error("Not yet implemented.");
 }
+
+const IR_EVENT_NAME = "Local\\IRSDKDataValidEvent";
+const IR_MEMMAP_NAME = "Local\\IRSDKMemMapFileName";
+
+/**
+ * Polls the data source for new sample information by repeatedly waiting for new data
+ */
+async function watchForSamples(
+  /**
+   * A function that returns a promise which resolves when new telemetry is available.
+   *
+   * If the promise rejects, we will stop trying to retrieve data
+   */
+  waitForReady: () => Promise<void>,
+  /**
+   * A data source provider that can be used to read telemetry
+   */
+  source: () => DataSource,
+  /**
+   * A callback method that accepts new SessionData instances
+   */
+  outSessions: (session: SessionData) => void,
+  /**
+   * A callback method that accepts new Telemetry samples
+   */
+  outTelem: (sample: TelemetrySample) => void,
+  /**
+   * If true, then skip ahead in the given data source each time we open it, based on the number of samples read.
+   *
+   * Set this to true for "watched" file sources
+   */
+  skipSamples = false,
+) {
+  let samplesRead = 0;
+  let sessionUpdate = -1;
+
+  while (true) {
+    try {
+      await waitForReady();
+    } catch (err) {
+      return;
+    }
+
+    const ds = source();
+    await readIBT(
+      ds,
+      () => false,
+      (data) => {
+        if (data instanceof TelemetrySample) {
+          samplesRead++;
+          outTelem(data);
+        } else if (data instanceof SessionData) {
+          sessionUpdate = Math.max(sessionUpdate, data.version);
+          outSessions(data);
+        }
+      },
+      {
+        sessionInfoUpdate: sessionUpdate,
+        skipToSample: skipSamples ? samplesRead : undefined,
+      },
+    );
+  }
+}
+
+// TODO: figure out how to handle connections and disconnections
+
+// function watchLive(): Observable<IRSample> {
+//   return new Observable<IRSample>((subscriber) => {
+//     let interrupted = false;
+
+//     const sessions = new Subject<SessionData>();
+//     const samples = new Subject<TelemetrySample>();
+
+//     const outSessions = (s: SessionData) => {
+//       if (!interrupted) sessions.next(s);
+//     };
+
+//     const outTelems = (t: TelemetrySample) => {
+//       if (!interrupted) {
+//         samples.next(t);
+//       }
+//     };
+
+//     let currentWaiter = null as Interruptible<void> | null;
+
+//     const waitForNext = () => {
+//       currentWaiter = asInterruptible(waitForNextEvent(IR_EVENT_NAME));
+//       return currentWaiter.value;
+//     };
+
+//     // ensure that the session update count is always going up
+//     const incSessions = increasing(
+//       sessions,
+//       (cur, next) => next.version > cur.version,
+//     );
+
+//     // also ensure that the tick number is always going up
+//     const incSamples = increasing(
+//       samples,
+//       (cur, next) =>
+//         (next.getSessionTick() ?? -1) > (cur.getSessionTick() ?? -1),
+//     );
+
+//     const subjectSubscription = combineLatest([incSessions, incSamples])
+//       .pipe(map(([s, t]) => new IRSample(s, t)))
+//       .subscribe(subscriber);
+
+//     const unsubscribe = () => {
+//       // stop emitting samples
+//       interrupted = true;
+//       if (currentWaiter !== null) {
+//         currentWaiter.interrupt();
+//       }
+
+//       // tear down this rickety nonsense
+//       subjectSubscription.unsubscribe();
+//     };
+
+//     // now that everything is set up, start parsing and emitting samples
+//     watchForSamples(
+//       waitForNext,
+//       () => new MemoryMapDataSource(IR_MEMMAP_NAME),
+//       outSessions,
+//       outTelems,
+//       false,
+//     );
+
+//     return unsubscribe;
+//   });
+// }

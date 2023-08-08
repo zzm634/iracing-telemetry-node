@@ -14,6 +14,7 @@
     "husky": ">=6",
     "lint-staged": ">=10",
     "prettier": "3.0.0",
+    "quicktype-core": "^23.0.63",
     "ts-node": "^10.9.1",
     "typescript": "^5.1.6"
   },
@@ -28,6 +29,7 @@
     "*.{js,css,md,ts}": "prettier --write"
   },
   "scripts": {
-    "prepare": "husky install"
+    "prepare": "husky install",
+    "generate-types": "ts-node ./util/generate_types.ts"
   }
 }

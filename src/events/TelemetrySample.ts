@@ -1,5 +1,4 @@
-import { timeStamp } from "console";
-import { Lazy, lazy } from "./async.js";
+import { Lazy } from "../async";
 import {
   IRTVar,
   IRTVarChar,
@@ -11,21 +10,25 @@ import {
   M_EngineWarning,
   IRSDKVarType,
   IRTValue,
-  toEnumSet,
   Bitmask,
   M_Flag,
   E_TrkLoc,
   E_TrkSurf,
   M_PitSvFlags,
   E_PaceMode,
-} from "./irsdk.js";
+} from "../irsdk";
 
 export type SampleData = Map<string, string[] | number[] | boolean[]>;
 
 /**
  * TelemetrySample is a set of telemetry variables exported from the simulator at a single point in time.
+ *
+ *
  */
 export class TelemetrySample {
+  getSessionTick() {
+    return this.getSingleNumber("SessionTick");
+  }
   private data: Lazy<Map<string, string[] | number[] | boolean[]>>;
 
   constructor(
