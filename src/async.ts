@@ -620,7 +620,7 @@ export const operators = {
    *
    * example using > as comparator
    * input:   -1-2-4-3-5-5-5-2-7-8-1-|
-   * out >:   -1-2---3-5-------7-8---|
+   * out >:   -1-2-4---5-------7-8---|
    */
   increasing:
     <E>(comparator: (current: E, next: E) => boolean) =>
